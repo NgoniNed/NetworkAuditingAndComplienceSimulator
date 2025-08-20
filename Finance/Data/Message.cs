@@ -1,5 +1,5 @@
 ﻿using System;
-namespace CentralServer.Data
+namespace Finance.Data
 {
     public class Message
     {

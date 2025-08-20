@@ -1,4 +1,4 @@
-﻿namespace CentralServer.Data
+﻿namespace Finance.Data
 {
     public enum MessageType
     {
