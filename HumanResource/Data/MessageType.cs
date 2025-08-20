@@ -1,4 +1,4 @@
-﻿namespace CentralServer.Data
+﻿namespace HumanResource.Data
 {
     public enum MessageType
     {
