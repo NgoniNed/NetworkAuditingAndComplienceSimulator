@@ -406,3 +406,4 @@ ASALocalRun/
 manual_docker_runner.sh
 system.txt
 Description.txt
+append_file_contents.sh
