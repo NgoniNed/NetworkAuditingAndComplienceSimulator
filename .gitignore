@@ -402,4 +402,7 @@ ASALocalRun/
 .mfractor/
 
 # Local History for Visual Studio
-.localhistory/
+.localhistory/docker-compose.yml
+manual_docker_runner.sh
+system.txt
+Description.txt
