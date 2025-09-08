@@ -16,10 +16,9 @@ namespace CentralServer.Hubs
 
         public async Task SendMessage(Message message)
         {
-            // Basic validation (add more as needed)
             if (string.IsNullOrEmpty(message.SenderDepartment) || string.IsNullOrEmpty(message.MessageContent))
             {
-                return; // Or throw an exception
+                return; 
             }
 
             //Routing logic
@@ -35,7 +34,6 @@ namespace CentralServer.Hubs
                     await Clients.Group(message.SenderDepartment).SendAsync("ReceiveMessage", message);
                     break;
                 case MessageType.OrganizationAnnouncement:
-                    // Send to all departments.  Consider a more efficient approach if needed.
                     string[] allowedDepartments = _configuration.GetSection("AllowedDepartments").Get<string[]>();
 
                     if (allowedDepartments != null)
