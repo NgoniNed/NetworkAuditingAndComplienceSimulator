@@ -7,4 +7,7 @@
   <ItemGroup>
     <SupportedPlatform Include="browser" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\BaseLibrary\BaseLibrary.csproj" />
+  </ItemGroup>
 </Project>
