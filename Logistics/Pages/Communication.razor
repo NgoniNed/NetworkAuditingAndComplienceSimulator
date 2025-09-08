@@ -1,6 +1,6 @@
 ﻿@page "/communication"
 @inject CommunicationService CommunicationService
-@inject IConfiguration Configuration  // Inject IConfiguration
+
 @implements IAsyncDisposable
 
 <h1>Department Communication</h1>
@@ -38,10 +38,9 @@
     private string newMessage;
     private string selectedRecipient = "";
 
-    // Use the injected Configuration (no need for underscore)
     protected override async Task OnInitializedAsync()
     {
-        _departmentName = Configuration["DepartmentName"];
+        _departmentName = CommunicationService.DepartmentName;
         CommunicationService.MessageReceived += HandleMessageReceived;
         await CommunicationService.StartConnection();
     }
@@ -75,7 +74,7 @@
     private void HandleMessageReceived(Message message)
     {
         messages.Add(message);
-        StateHasChanged(); // Update the UI
+        StateHasChanged();
     }
 
     public async ValueTask DisposeAsync()
@@ -89,7 +88,7 @@
     .chat-container {
         display: flex;
         flex-direction: column;
-        height: 500px; /* Adjust as needed */
+        height: 500px; 
         border: 1px solid #ccc;
         overflow: hidden;
     }
