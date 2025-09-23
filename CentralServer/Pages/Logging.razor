@@ -1,0 +1,15 @@
+﻿@page "/logging"
+@using CentralServer.Data
+@using CentralServer.Components 
+
+<h3>Logging Dashboard</h3>
+
+<LogTable Logs="@logEntries" />
+
+@code {
+    private List<LogEntry> logEntries = new()
+    {
+            new LogEntry { Timestamp = DateTime.Now, Source = "Finance", Destination = "CentralServer", Type = "SignalR", Status = "Success" },
+            new LogEntry { Timestamp = DateTime.Now.AddMinutes(-5), Source = "HR", Destination = "Finance", Type = "API", Status = "Failed" }
+        };
+}
