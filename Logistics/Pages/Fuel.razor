@@ -1,0 +1,148 @@
+﻿@page "/fuel"
+
+<div class="container">
+    <h2>Fuel Logging</h2>
+
+    <button class="btn btn-primary mb-3" @onclick="ShowCreateForm">Add Fuel Log</button>
+
+    @if (showCreateForm)
+    {
+        <FuelForm OnFuelCreated="AddFuel" OnCancel="HideCreateForm" />
+    }
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Equipment</th>
+                <th>Liters</th>
+                <th>Cost</th>
+                <th>Odometer</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var fuelLog in fuelLogs)
+            {
+                <tr>
+                    <td>@fuelLog.Date.ToShortDateString()</td>
+                    <td>@fuelLog.EquipmentId</td>
+                    <td>@fuelLog.LitersFilled</td>
+                    <td>@fuelLog.Cost</td>
+                    <td>@fuelLog.OdometerReading</td>
+                    <td>
+                        <button class="btn btn-sm btn-info" @onclick="() => ShowEditForm(fuelLog)">Edit</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteFuel(fuelLog)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (showEditForm)
+    {
+        <div class="modal fade show" id="editFuelModal" tabindex="-1" role="dialog" style="display:block;">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Fuel Log</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close" @onclick="HideEditForm">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <FuelForm FuelLog="selectedFuelLog" OnFuelUpdated="UpdateFuel" OnCancel="HideEditForm" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-backdrop fade show"></div>
+    }
+</div>
+
+@code {
+    private List<FuelLog> fuelLogs = new List<FuelLog>(); // Replace with data fetching
+
+    private bool showCreateForm = false;
+    private bool showEditForm = false;
+    private FuelLog selectedFuelLog;
+
+    protected override void OnInitialized()
+    {        //LoadFuelLogs(); // Fetch from a service or database
+        fuelLogs = GetFuelLogs(); //dummy data
+    }
+    private List<FuelLog> GetFuelLogs()
+    {
+        //dummy data
+        return new List<FuelLog>()
+    {
+            new FuelLog()
+            {
+                Date = DateTime.Now,
+                EquipmentId = 1,
+                LitersFilled = 50,
+                Cost = 75,
+                OdometerReading = 10000
+            },
+             new FuelLog()
+            {
+                Date = DateTime.Now,
+                EquipmentId = 2,
+                LitersFilled = 60,
+                Cost = 90,
+                OdometerReading = 5000
+            }
+        };
+    }
+
+    private void ShowCreateForm()
+    {
+        showCreateForm = true;
+    }
+
+    private void HideCreateForm()
+    {
+        showCreateForm = false;
+    }
+
+    private void ShowEditForm(FuelLog fuelLog)
+    {
+        selectedFuelLog = fuelLog;
+        showEditForm = true;
+    }
+
+    private void HideEditForm()
+    {
+        showEditForm = false;
+        selectedFuelLog = null;
+    }
+
+    private void AddFuel(FuelLog newFuel)
+    {
+        fuelLogs.Add(newFuel);
+        HideCreateForm();
+        // Optionally: Show a success notification
+    }
+
+    private void UpdateFuel(FuelLog updatedFuel)
+    {
+        var existingFuel = fuelLogs.FirstOrDefault(e => e.FuelLogId == updatedFuel.FuelLogId); // Assuming FuelLog has an ID
+        if (existingFuel != null)
+        {
+            // Update properties of existingEmployee with updatedEmployee
+            existingFuel.Date = updatedFuel.Date;
+            existingFuel.EquipmentId = updatedFuel.EquipmentId;
+            existingFuel.LitersFilled = updatedFuel.LitersFilled;
+            existingFuel.Cost = updatedFuel.Cost;
+            existingFuel.OdometerReading = updatedFuel.OdometerReading;
+        }
+        HideEditForm();
+        // Optionally: Show a success notification
+    }
+
+    private void DeleteFuel(FuelLog fuelToDelete)
+    {
+        fuelLogs.Remove(fuelToDelete);
+        // Optionally: Show a success notification
+    }
+}

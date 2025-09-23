@@ -1,0 +1,144 @@
+﻿@page "/costs"
+
+<div class="container">
+    <h2>Cost Logging</h2>
+
+    <button class="btn btn-primary mb-3" @onclick="ShowCreateForm">Add Cost</button>
+
+    @if (showCreateForm)
+    {
+        <CostForm OnCostCreated="AddCost" OnCancel="HideCreateForm" />
+    }
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Amount</th>
+                <th>Category</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var cost in costs)
+            {
+                <tr>
+                    <td>@cost.Date.ToShortDateString()</td>
+                    <td>@cost.Description</td>
+                    <td>@cost.Amount</td>
+                    <td>@cost.Category</td>
+                    <td>
+                        <button class="btn btn-sm btn-info" @onclick="() => ShowEditForm(cost)">Edit</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteCost(cost)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (showEditForm)
+    {
+        <div class="modal fade show" id="editCostModal" tabindex="-1" role="dialog" style="display:block;">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Cost</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close" @onclick="HideEditForm">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <CostForm Cost="selectedCost" OnCostUpdated="UpdateCost" OnCancel="HideEditForm" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-backdrop fade show"></div>
+    }
+</div>
+
+@code {
+    private List<CostLog> costs = new List<CostLog>(); // Replace with data fetching
+
+    private bool showCreateForm = false;
+    private bool showEditForm = false;
+    private CostLog selectedCost;
+
+    protected override void OnInitialized()
+    {
+        //LoadCosts(); // Fetch from a service or database
+        costs = GetCosts(); //dummy data
+    }
+    private List<CostLog> GetCosts()
+    {
+        //dummy data
+        return new List<CostLog>()
+{
+            new CostLog()
+            {
+                Date = DateTime.Now,
+                Description = "Fuel Purchase",
+                Amount = 100,
+                Category = "Fuel"
+            },
+             new CostLog()
+            {
+                Date = DateTime.Now,
+                Description = "Truck Repair",
+                Amount = 250,
+                Category = "Maintenance"
+            }
+        };
+    }
+
+    private void ShowCreateForm()
+    {
+        showCreateForm = true;
+    }
+
+    private void HideCreateForm()
+    {
+        showCreateForm = false;
+    }
+
+    private void ShowEditForm(CostLog cost)
+    {
+        selectedCost = cost;
+        showEditForm = true;
+    }
+
+    private void HideEditForm()
+    {
+        showEditForm = false;
+        selectedCost = null;
+    }
+
+    private void AddCost(CostLog newCost)
+    {
+        costs.Add(newCost);
+        HideCreateForm();
+        // Optionally: Show a success notification
+    }
+
+    private void UpdateCost(CostLog updatedCost)
+    {
+        var existingCost = costs.FirstOrDefault(e => e.CostLogId == updatedCost.CostLogId); // Assuming Cost has an ID
+        if (existingCost != null)
+        {
+            // Update properties of existingEmployee with updatedEmployee
+            existingCost.Date = updatedCost.Date;
+            existingCost.Description = updatedCost.Description;
+            existingCost.Amount = updatedCost.Amount;
+            existingCost.Category = updatedCost.Category;
+        }
+        HideEditForm();
+        // Optionally: Show a success notification
+    }
+
+    private void DeleteCost(CostLog costToDelete)
+    {
+        costs.Remove(costToDelete);
+        // Optionally: Show a success notification
+    }
+}

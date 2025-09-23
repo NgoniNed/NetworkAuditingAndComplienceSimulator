@@ -1,0 +1,143 @@
+﻿@page "/shipments"
+
+<div class="container">
+    <h2>Shipment Management</h2>
+
+    <button class="btn btn-primary mb-3" @onclick="ShowCreateForm">Add Shipment</button>
+
+    @if (showCreateForm)
+    {
+        <ShipmentForm OnShipmentCreated="AddShipment" OnCancel="HideCreateForm" />
+    }
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Shipment Number</th>
+                <th>Origin</th>
+                <th>Destination</th>
+                <th>Expected Delivery</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var shipment in shipments)
+            {
+                <tr>
+                    <td>@shipment.ShipmentNumber</td>
+                    <td>@shipment.Origin</td>
+                    <td>@shipment.Destination</td>
+                    <td>@shipment.ExpectedDeliveryDate.ToShortDateString()</td>
+                    <td>@shipment.CurrentStatus</td>
+                    <td>
+                        <button class="btn btn-sm btn-info" @onclick="() => ShowEditForm(shipment)">Edit</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteShipment(shipment)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (showEditForm)
+    {
+        <div class="modal fade show" id="editShipmentModal" tabindex="-1" role="dialog" style="display:block;">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Shipment</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close" @onclick="HideEditForm">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <ShipmentForm Shipment="selectedShipment" OnShipmentUpdated="UpdateShipment" OnCancel="HideEditForm" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-backdrop fade show"></div>
+    }
+</div>
+
+@code {
+    private List<Shipment> shipments = new List<Shipment>();
+
+    private bool showCreateForm = false; private bool showEditForm = false;
+    private Shipment selectedShipment;
+
+    protected override void OnInitialized()
+    {
+        shipments = GetShipments();
+    }
+    private List<Shipment> GetShipments()
+    {
+        //dummy data
+        return new List<Shipment>()
+    {
+            new Shipment()
+            {
+                ShipmentNumber = "1234",
+                Origin = "Location 1",
+                Destination = "Location 2",
+                ExpectedDeliveryDate = DateTime.Now,
+                CurrentStatus = "Pending"
+            },
+             new Shipment()
+            {
+                ShipmentNumber = "5678",
+                Origin = "Location 3",
+                Destination = "Location 4",
+                ExpectedDeliveryDate = DateTime.Now,
+                CurrentStatus = "Pending"
+            }
+        };
+    }
+
+    private void ShowCreateForm()
+    {
+        showCreateForm = true;
+    }
+
+    private void HideCreateForm()
+    {
+        showCreateForm = false;
+    }
+
+    private void ShowEditForm(Shipment shipment)
+    {
+        selectedShipment = shipment;
+        showEditForm = true;
+    }
+
+    private void HideEditForm()
+    {
+        showEditForm = false;
+        selectedShipment = null;
+    }
+
+    private void AddShipment(Shipment newShipment)
+    {
+        shipments.Add(newShipment);
+        HideCreateForm();
+    }
+
+    private void UpdateShipment(Shipment updatedShipment)
+    {
+        var existingShipment = shipments.FirstOrDefault(e => e.ShipmentId == updatedShipment.ShipmentId);
+        if (existingShipment != null)
+        {
+            existingShipment.ShipmentNumber = updatedShipment.ShipmentNumber;
+            existingShipment.Origin = updatedShipment.Origin;
+            existingShipment.Destination = updatedShipment.Destination;
+            existingShipment.ExpectedDeliveryDate = updatedShipment.ExpectedDeliveryDate;
+            existingShipment.CurrentStatus = updatedShipment.CurrentStatus;
+        }
+        HideEditForm();
+    }
+
+    private void DeleteShipment(Shipment shipmentToDelete)
+    {
+        shipments.Remove(shipmentToDelete);
+    }
+}

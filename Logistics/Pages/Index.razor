@@ -1,7 +1,98 @@
 ﻿@page "/"
 
-<h1>Hello, world!</h1>
+<div class="container-fluid">
+    <h2>Logistics Dashboard</h2>
 
-Welcome to your new app.
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card bg-light mb-3">
+                <div class="card-header">Shipments in Transit</div>
+                <div class="card-body">
+                    <h4 class="card-title">@shipmentsInTransit</h4>
+                    <p class="card-text">Number of shipments currently in transit.</p>
+                </div>
+            </div>
+        </div>
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+        <div class="col-md-4">
+            <div class="card bg-light mb-3">
+                <div class="card-header">Equipment Due for Service</div>
+                <div class="card-body">
+                    <h4 class="card-title">@equipmentDueForService</h4>
+                    <p class="card-text">Number of equipment items due for service.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card bg-light mb-3">
+                <div class="card-header">Total Logistics Costs (Last Month)</div>
+                <div class="card-body">
+                    <h4 class="card-title">$@totalCostsLastMonth</h4>
+                    <p class="card-text">Total logistics-related expenses for the past month.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card bg-light mb-3">
+                <div class="card-header">Average Fuel Consumption (This Week)</div>
+                <div class="card-body">
+                    <h4 class="card-title">@averageFuelConsumption Litres</h4>
+                    <p class="card-text">Average fuel consumption by all equipment items for this week.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h3>Quick Actions</h3>
+    <ul>
+        <li><a href="/shipments">Manage Shipments</a></li>
+        <li><a href="/equipment">Manage Equipment</a></li>
+        <li><a href="/costs">Log New Costs</a></li>
+        <li><a href="/fuel">Log Fuel Consumption</a></li>
+    </ul>
+</div>
+
+@code {
+    private int shipmentsInTransit = 0;
+    private int equipmentDueForService = 0;
+    private decimal totalCostsLastMonth = 0;
+    private decimal averageFuelConsumption = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Load data from your services or database here
+        shipmentsInTransit = await GetShipmentsInTransitCount();
+        equipmentDueForService = await GetEquipmentDueForServiceCount();
+        totalCostsLastMonth = await GetTotalCostsLastMonth();
+        averageFuelConsumption = await GetAverageFuelConsumptionThisWeek();
+    }
+
+    // Placeholder methods to fetch data (replace with your actual data access logic)
+    private async Task<int> GetShipmentsInTransitCount()
+    {
+        // Replace with your data fetching logic
+        return 15;
+    }
+
+    private async Task<int> GetEquipmentDueForServiceCount()
+    {
+        // Replace with your data fetching logic
+        return 2;
+    }
+
+    private async Task<decimal> GetTotalCostsLastMonth()
+    {
+        // Replace with your data fetching logic
+        return 5000.00m;
+    }
+
+    private async Task<decimal> GetAverageFuelConsumptionThisWeek()
+    {
+        // Replace with your data fetching logic
+        return 50.50m;
+    }
+}
