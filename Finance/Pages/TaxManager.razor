@@ -1,0 +1,28 @@
+﻿@page "/taxmanager"
+ 
+<h3>Tax Management</h3>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Item</th>
+            <th>Projected Tax</th>
+            <th>Due Date</th>
+            <th>Tax Return</th>
+            <th>Tax Exempt</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var taxItem in taxItems)
+        {
+            <tr>
+                <td>@taxItem.Name</td>
+                <td>@taxItem.ProjectedTax</td>
+                <td>@taxItem.DueDate.ToShortDateString()</td>
+                <td>@taxItem.TaxReturn</td>
+                <td>@(taxItem.IsExempt ? "Yes" : "No")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+

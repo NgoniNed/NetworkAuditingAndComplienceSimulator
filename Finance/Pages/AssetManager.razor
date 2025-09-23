@@ -1,0 +1,32 @@
+﻿@page "/assetmanager"
+
+<h3>Asset Management</h3>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Asset Name</th>
+            <th>Acquisition Date</th>
+            <th>Cost</th>
+            <th>Running Costs</th>
+            <th>Maintenance</th>
+            <th>Depreciation</th>
+            <th>PnL</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var asset in assets)
+        {
+            <tr>
+                <td>@asset.Name</td>
+                <td>@asset.AcquisitionDate.ToShortDateString()</td>
+                <td>@asset.Cost</td>
+                <td>@asset.RunningCosts</td>
+                <td>@asset.MaintenanceCosts</td>
+                <td>@asset.Depreciation</td>
+                <td>@asset.ProfitLoss</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
