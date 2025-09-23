@@ -59,7 +59,7 @@
 </div>
 
 @code {
-    private List<Intern> interns = new List<Intern>(); // Replace with data fetching
+    private List<Intern> interns = new List<Intern>(); 
 
     private bool showCreateForm = false;
     private bool showEditForm = false;
@@ -67,12 +67,10 @@
 
     protected override void OnInitialized()
     {
-        //LoadEmployees(); // Fetch from a service or database
-        interns = GetInterns(); //dummy data
+        interns = GetInterns(); 
     }
     private List<Intern> GetInterns()
     {
-        //dummy data
         return new List<Intern>()
     {
             new Intern()
@@ -118,38 +116,25 @@
     {
         interns.Add(newIntern);
         HideCreateForm();
-        // Optionally: Show a success notification
     }
 
     private void UpdateIntern(Intern updatedIntern)
     {
-        var existingIntern = interns.FirstOrDefault(e => e.InternId == updatedIntern.InternId); // Assuming Employee has an ID
+        var existingIntern = interns.FirstOrDefault(e => e.InternId == updatedIntern.InternId);
         if (existingIntern != null)
         {
-            // Update properties of existingEmployee with updatedEmployee
             existingIntern.Name = updatedIntern.Name;
             existingIntern.Department = updatedIntern.Department;
             existingIntern.Position = updatedIntern.Position;
             existingIntern.Email = updatedIntern.Email;
         }
         HideEditForm();
-        // Optionally: Show a success notification
     }
 
     private void DeleteIntern(Intern internToDelete)
     {
         interns.Remove(internToDelete);
-        // Optionally: Show a success notification
     }
 
-    public class Intern
-    {
-        public int InternId { get; set; } // Example ID
-        public string Name { get; set; }
-        public string Department { get; set; }
-        public string Position { get; set; }
-        public string Email { get; set; }
-
-        // Add other relevant properties (e.g., HireDate, Salary, etc.)
-    }
+    
 }

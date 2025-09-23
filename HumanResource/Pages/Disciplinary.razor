@@ -57,7 +57,7 @@
 </div>
 
 @code {
-    private List<DisciplinaryCase> cases = new List<DisciplinaryCase>(); // Replace with data fetching
+    private List<DisciplinaryCase> cases = new List<DisciplinaryCase>(); 
 
     private bool showCreateForm = false;
     private bool showEditForm = false;
@@ -65,12 +65,10 @@
 
     protected override void OnInitialized()
     {
-        //LoadEmployees(); // Fetch from a service or database
-        cases = GetCases(); //dummy data
+        cases = GetCases(); 
     }
     private List<DisciplinaryCase> GetCases()
     {
-        //dummy data
         return new List<DisciplinaryCase>()
     {
             new DisciplinaryCase()
@@ -114,36 +112,31 @@
     {
         cases.Add(newCase);
         HideCreateForm();
-        // Optionally: Show a success notification
     }
 
     private void UpdateCase(DisciplinaryCase updatedCase)
     {
-        var existingCase = cases.FirstOrDefault(e => e.CaseId == updatedCase.CaseId); // Assuming Employee has an ID
+        var existingCase = cases.FirstOrDefault(e => e.CaseId == updatedCase.CaseId); 
         if (existingCase != null)
         {
-            // Update properties of existingEmployee with updatedEmployee
             existingCase.EmployeeName = updatedCase.EmployeeName;
             existingCase.Date = updatedCase.Date;
             existingCase.Reason = updatedCase.Reason;
         }
         HideEditForm();
-        // Optionally: Show a success notification
     }
 
     private void DeleteCase(DisciplinaryCase caseToDelete)
     {
         cases.Remove(caseToDelete);
-        // Optionally: Show a success notification
     }
 
     public class DisciplinaryCase
     {
-        public int CaseId { get; set; } // Example ID
+        public int CaseId { get; set; } 
         public string EmployeeName { get; set; }
         public DateTime Date { get; set; }
         public string Reason { get; set; }
 
-        // Add other relevant properties (e.g., Description, etc.)
     }
 }

@@ -59,19 +59,18 @@
 </div>
 
 @code {
-    private List<Employee> employees = new List<Employee>(); // Replace with data fetching
+    private List<Employee> employees = new List<Employee>(); 
 
     private bool showCreateForm = false;
     private bool showEditForm = false;
     private Employee selectedEmployee;
 
     protected override void OnInitialized()
-    {        //LoadEmployees(); // Fetch from a service or database
-        employees = GetEmployees(); //dummy data
+    {        
+        employees = GetEmployees(); 
     }
     private List<Employee> GetEmployees()
     {
-        //dummy data
         return new List<Employee>()
     {
             new Employee()
@@ -117,38 +116,33 @@
     {
         employees.Add(newEmployee);
         HideCreateForm();
-        // Optionally: Show a success notification
     }
 
     private void UpdateEmployee(Employee updatedEmployee)
     {
-        var existingEmployee = employees.FirstOrDefault(e => e.EmployeeId == updatedEmployee.EmployeeId); // Assuming Employee has an ID
+        var existingEmployee = employees.FirstOrDefault(e => e.EmployeeId == updatedEmployee.EmployeeId); 
         if (existingEmployee != null)
         {
-            // Update properties of existingEmployee with updatedEmployee
             existingEmployee.Name = updatedEmployee.Name;
             existingEmployee.Department = updatedEmployee.Department;
             existingEmployee.Position = updatedEmployee.Position;
             existingEmployee.Email = updatedEmployee.Email;
         }
         HideEditForm();
-        // Optionally: Show a success notification
     }
 
     private void DeleteEmployee(Employee employeeToDelete)
     {
         employees.Remove(employeeToDelete);
-        // Optionally: Show a success notification
     }
 
     public class Employee
     {
-        public int EmployeeId { get; set; } // Example ID
+        public int EmployeeId { get; set; }
         public string Name { get; set; }
         public string Department { get; set; }
         public string Position { get; set; }
         public string Email { get; set; }
 
-        // Add other relevant properties (e.g., HireDate, Salary, etc.)
     }
 }

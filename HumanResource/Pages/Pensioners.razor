@@ -14,8 +14,8 @@
         <thead>
             <tr>
                 <th>Name</th>
-                <th>Department</th>
-                <th>Position</th>
+                <th>Past Department</th>
+                <th>Past Position</th>
                 <th>Email</th>
                 <th>Actions</th>
             </tr>
@@ -25,8 +25,8 @@
             {
                 <tr>
                     <td>@pensioner.Name</td>
-                    <td>@pensioner.Department</td>
-                    <td>@pensioner.Position</td>
+                    <td>@pensioner.LastDepartment</td>
+                    <td>@pensioner.LastPosition</td>
                     <td>@pensioner.Email</td>
                     <td>
                         <button class="btn btn-sm btn-info" @onclick="() => ShowEditForm(pensioner)">Edit</button>
@@ -59,33 +59,32 @@
 </div>
 
 @code {
-    private List<Pensioner> pensioners = new List<Pensioner>(); // Replace with data fetching
+    private List<Pensioner> pensioners = new List<Pensioner>();
 
     private bool showCreateForm = false;
     private bool showEditForm = false;
     private Pensioner selectedPensioner;
 
     protected override void OnInitialized()
-    {        //LoadPensioners(); // Fetch from a service or database
-        pensioners = GetPensioners(); //dummy data
+    {        
+        pensioners = GetPensioners();
     }
     private List<Pensioner> GetPensioners()
     {
-        //dummy data
         return new List<Pensioner>()
     {
             new Pensioner()
             {
                 Name = "Dummy Pensioner 1",
-                Department = "IT",
-                Position = "Developer",
+                LastDepartment = "IT",
+                LastPosition = "Developer",
                 Email = "dummy1@email.com"
             },
             new Pensioner()
             {
                 Name = "Dummy Pensioner 2",
-                Department = "HR",
-                Position = "Manager",
+                LastDepartment = "HR",
+                LastPosition = "Manager",
                 Email = "dummy2@email.com"
             }
         };
@@ -117,38 +116,24 @@
     {
         pensioners.Add(newPensioner);
         HideCreateForm();
-        // Optionally: Show a success notification
     }
 
     private void UpdatePensioner(Pensioner updatedPensioner)
     {
-        var existingPensioner = pensioners.FirstOrDefault(e => e.PensionerId == updatedPensioner.PensionerId); // Assuming Employee has an ID
+        var existingPensioner = pensioners.FirstOrDefault(e => e.PensionerId == updatedPensioner.PensionerId); 
         if (existingPensioner != null)
         {
-            // Update properties of existingEmployee with updatedEmployee
             existingPensioner.Name = updatedPensioner.Name;
-            existingPensioner.Department = updatedPensioner.Department;
-            existingPensioner.Position = updatedPensioner.Position;
+            existingPensioner.LastDepartment = updatedPensioner.LastDepartment;
+            existingPensioner.LastPosition = updatedPensioner.LastPosition;
             existingPensioner.Email = updatedPensioner.Email;
         }
         HideEditForm();
-        // Optionally: Show a success notification
     }
 
     private void DeletePensioner(Pensioner pensionerToDelete)
     {
         pensioners.Remove(pensionerToDelete);
-        // Optionally: Show a success notification
     }
 
-    public class Pensioner
-    {
-        public int PensionerId { get; set; } // Example ID
-        public string Name { get; set; }
-        public string Department { get; set; }
-        public string Position { get; set; }
-        public string Email { get; set; }
-
-        // Add other relevant properties (e.g., HireDate, Salary, etc.)
-    }
 }
