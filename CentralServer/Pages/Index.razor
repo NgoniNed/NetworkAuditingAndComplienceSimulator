@@ -1,7 +1,52 @@
 ﻿@page "/"
+@using CentralServer.Data
 
-<h1>Hello, world!</h1>
+<h2>CentralServer Overview</h2>
 
-Welcome to your new app.
+<div class="row">
+    <div class="col-md-4">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-header">Total Logs Today</div>
+            <div class="card-body">
+                <h5 class="card-title">@logsToday</h5>
+                <p class="card-text">Messages routed through CentralServer in the last 24 hours.</p>
+            </div>
+        </div>
+    </div>
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+    <div class="col-md-4">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-header">Active Departments</div>
+            <div class="card-body">
+                <h5 class="card-title">@activeDepartments</h5>
+                <p class="card-text">Currently registered and online departments.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card text-white bg-danger mb-3">
+            <div class="card-header">Critical Events This Week</div>
+            <div class="card-body">
+                <h5 class="card-title">@criticalEvents</h5>
+                <p class="card-text">System-wide alerts marked as critical.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<hr />
+
+<h4>🔗 Quick Navigation</h4>
+<ul>
+    <li><a href="/logging">View Logs</a></li>
+    <li><a href="/registration">Manage Departments</a></li>
+    <li><a href="/events">Review Events</a></li>
+</ul>
+
+@code {
+    private int logsToday = 128; // Placeholder
+    private int activeDepartments = 4; // Placeholder
+    private int criticalEvents = 2; // Placeholder
+
+}

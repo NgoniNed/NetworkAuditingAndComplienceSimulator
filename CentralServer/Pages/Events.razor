@@ -1,5 +1,19 @@
-﻿<h3>Component1</h3>
+﻿@page "/events"
+@using CentralServer.Data
 
-@code {
+<h3>System Events</h3>
 
-}
+<EventForm OnCreate="AddEvent" />
+
+<div style="max-height: 300px; overflow-y: auto;">
+    <EventFeed Events="@eventEntries" />
+</div>
+
+    @code {
+        private List<EventEntry> eventEntries = new();
+
+        private void AddEvent(EventEntry evt)
+        {
+            eventEntries.Add(evt);
+        }
+    }

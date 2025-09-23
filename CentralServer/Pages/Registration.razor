@@ -1,17 +1,19 @@
 ﻿@page "/registration"
 @using CentralServer.Data
-@using CentralServer.Components
 
 <h3>Department Registration</h3>
 
 <DepartmentForm OnRegister="HandleRegister" />
-<DepartmentList Departments="@departments" />
 
-@code {
-    private List<Department> departments = new();
+<div style="max-height: 400px; overflow-y: auto;">
+    <DepartmentList Departments="@departments" />
+</div>
 
-    private void HandleRegister(Department dept)
-    {
-        departments.Add(dept);
+    @code {
+        private List<Department> departments = new();
+
+        private void HandleRegister(Department dept)
+        {
+            departments.Add(dept);
+        }
     }
-}
