@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <None Remove="Microsoft.AspNetCore.SignalR.Client" />
+    <None Remove="Data\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="5.0.17" />
@@ -14,5 +15,8 @@
     <ProjectReference Include="..\SharedLibrary\SharedLibrary.csproj">
       <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Data\" />
   </ItemGroup>
 </Project>
