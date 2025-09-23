@@ -1,5 +1,143 @@
-﻿<h3>Component1</h3>
+﻿@page "/departments"
+
+<div class="container">
+    <h2>Department Management</h2>
+
+    <button class="btn btn-primary mb-3" @onclick="ShowCreateForm">Add Department</button>
+
+    @if (showCreateForm)
+    {
+        <DepartmentForm OnDepartmentCreated="AddDepartment" OnCancel="HideCreateForm" />
+    }
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var department in departments)
+            {
+                <tr>
+                    <td>@department.Name</td>
+                    <td>@department.Description</td>
+                    <td>
+                        <button class="btn btn-sm btn-info" @onclick="() => ShowEditForm(department)">Edit</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteDepartment(department)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (showEditForm)
+    {
+        <div class="modal fade show" id="editDepartmentModal" tabindex="-1" role="dialog" style="display:block;">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Department</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close" @onclick="HideEditForm">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <DepartmentForm Department="selectedDepartment" OnDepartmentUpdated="UpdateDepartment" OnCancel="HideEditForm" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-backdrop fade show"></div>
+    }
+</div>
 
 @code {
+    private List<Department> departments = new List<Department>(); // Replace with data fetching
 
+    private bool showCreateForm = false;
+    private bool showEditForm = false;
+    private Department selectedDepartment;
+
+    protected override void OnInitialized()
+    {
+        //LoadDepartments(); // Fetch from a service or database
+        departments = GetDepartments(); //dummy data
+    }
+    private List<Department> GetDepartments()
+    {
+        //dummy data
+        return new List<Department>()
+    {
+            new Department()
+            {
+                Name = "Dummy Department 1",
+                Description = "Description 1"
+            },
+            new Department()
+            {
+                Name = "Dummy Department 2",
+                Description = "Description 2"
+            }
+        };
+    }
+
+    private void ShowCreateForm()
+    {
+        showCreateForm = true;
+    }
+
+    private void HideCreateForm()
+    {
+        showCreateForm = false;
+    }
+
+    private void ShowEditForm(Department department)
+    {
+        selectedDepartment = department;
+        showEditForm = true;
+    }
+
+    private void HideEditForm()
+    {
+        showEditForm = false;
+        selectedDepartment = null;
+    }
+
+    private void AddDepartment(Department newDepartment)
+    {
+        departments.Add(newDepartment);
+        HideCreateForm();
+        // Optionally: Show a success notification
+    }
+
+    private void UpdateDepartment(Department updatedDepartment)
+    {
+        var existingDepartment = departments.FirstOrDefault(e => e.DepartmentId == updatedDepartment.DepartmentId); // Assuming Employee has an ID
+        if (existingDepartment != null)
+        {
+            // Update properties of existingEmployee with updatedEmployee
+            existingDepartment.Name = updatedDepartment.Name;
+            existingDepartment.Description = updatedDepartment.Description;
+        }
+        HideEditForm();
+        // Optionally: Show a success notification
+    }
+
+    private void DeleteDepartment(Department departmentToDelete)
+    {
+        departments.Remove(departmentToDelete);
+        // Optionally: Show a success notification
+    }
+
+    public class Department
+    {
+        public int DepartmentId { get; set; } // Example ID
+        public string Name { get; set; }
+        public string Description { get; set; }
+
+        // Add other relevant properties (e.g., HireDate, Salary, etc.)
+    }
 }

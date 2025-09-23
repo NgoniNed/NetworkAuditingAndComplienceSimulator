@@ -1,5 +1,149 @@
-﻿<h3>Component1</h3>
+﻿@page "/disciplinary"
+
+<div class="container">
+    <h2>Disciplinary Cases</h2>
+
+    <button class="btn btn-primary mb-3" @onclick="ShowCreateForm">Add Case</button>
+
+    @if (showCreateForm)
+    {
+        <CaseForm OnCaseCreated="AddCase" OnCancel="HideCreateForm" />
+    }
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Employee Name</th>
+                <th>Date</th>
+                <th>Reason</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var caseItem in cases)
+            {
+                <tr>
+                    <td>@caseItem.EmployeeName</td>
+                    <td>@caseItem.Date.ToShortDateString()</td>
+                    <td>@caseItem.Reason</td>
+                    <td>
+                        <button class="btn btn-sm btn-info" @onclick="() => ShowEditForm(caseItem)">Edit</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteCase(caseItem)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (showEditForm)
+    {
+        <div class="modal fade show" id="editCaseModal" tabindex="-1" role="dialog" style="display:block;">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Case</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close" @onclick="HideEditForm">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <CaseForm CaseItem="selectedCase" OnCaseUpdated="UpdateCase" OnCancel="HideEditForm" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-backdrop fade show"></div>
+    }
+</div>
 
 @code {
+    private List<DisciplinaryCase> cases = new List<DisciplinaryCase>(); // Replace with data fetching
 
+    private bool showCreateForm = false;
+    private bool showEditForm = false;
+    private DisciplinaryCase selectedCase;
+
+    protected override void OnInitialized()
+    {
+        //LoadEmployees(); // Fetch from a service or database
+        cases = GetCases(); //dummy data
+    }
+    private List<DisciplinaryCase> GetCases()
+    {
+        //dummy data
+        return new List<DisciplinaryCase>()
+    {
+            new DisciplinaryCase()
+            {
+                EmployeeName = "Dummy Employee 1",
+                Date = DateTime.Now,
+                Reason = "Reason 1"
+            },
+            new DisciplinaryCase()
+            {
+                EmployeeName = "Dummy Employee 2",
+                Date = DateTime.Now,
+                Reason = "Reason 2"
+            }
+        };
+    }
+
+    private void ShowCreateForm()
+    {
+        showCreateForm = true;
+    }
+
+    private void HideCreateForm()
+    {
+        showCreateForm = false;
+    }
+
+    private void ShowEditForm(DisciplinaryCase caseItem)
+    {
+        selectedCase = caseItem;
+        showEditForm = true;
+    }
+
+    private void HideEditForm()
+    {
+        showEditForm = false;
+        selectedCase = null;
+    }
+
+    private void AddCase(DisciplinaryCase newCase)
+    {
+        cases.Add(newCase);
+        HideCreateForm();
+        // Optionally: Show a success notification
+    }
+
+    private void UpdateCase(DisciplinaryCase updatedCase)
+    {
+        var existingCase = cases.FirstOrDefault(e => e.CaseId == updatedCase.CaseId); // Assuming Employee has an ID
+        if (existingCase != null)
+        {
+            // Update properties of existingEmployee with updatedEmployee
+            existingCase.EmployeeName = updatedCase.EmployeeName;
+            existingCase.Date = updatedCase.Date;
+            existingCase.Reason = updatedCase.Reason;
+        }
+        HideEditForm();
+        // Optionally: Show a success notification
+    }
+
+    private void DeleteCase(DisciplinaryCase caseToDelete)
+    {
+        cases.Remove(caseToDelete);
+        // Optionally: Show a success notification
+    }
+
+    public class DisciplinaryCase
+    {
+        public int CaseId { get; set; } // Example ID
+        public string EmployeeName { get; set; }
+        public DateTime Date { get; set; }
+        public string Reason { get; set; }
+
+        // Add other relevant properties (e.g., Description, etc.)
+    }
 }

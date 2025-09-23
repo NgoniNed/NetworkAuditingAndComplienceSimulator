@@ -1,13 +1,13 @@
-﻿@page "/pensioners"
+﻿@page "/employees"
 
 <div class="container">
-    <h2>Pensioners Management</h2>
+    <h2>Employee Management</h2>
 
-    <button class="btn btn-primary mb-3" @onclick="ShowCreateForm">Add Pensioner</button>
+    <button class="btn btn-primary mb-3" @onclick="ShowCreateForm">Add Employee</button>
 
     @if (showCreateForm)
     {
-        <PensionerForm OnPensionerCreated="AddPensioner" OnCancel="HideCreateForm" />
+        <EmployeeForm OnEmployeeCreated="AddEmployee" OnCancel="HideCreateForm" />
     }
 
     <table class="table table-striped">
@@ -21,16 +21,16 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var pensioner in pensioners)
+            @foreach (var employee in employees)
             {
                 <tr>
-                    <td>@pensioner.Name</td>
-                    <td>@pensioner.Department</td>
-                    <td>@pensioner.Position</td>
-                    <td>@pensioner.Email</td>
+                    <td>@employee.Name</td>
+                    <td>@employee.Department</td>
+                    <td>@employee.Position</td>
+                    <td>@employee.Email</td>
                     <td>
-                        <button class="btn btn-sm btn-info" @onclick="() => ShowEditForm(pensioner)">Edit</button>
-                        <button class="btn btn-sm btn-danger" @onclick="() => DeletePensioner(pensioner)">Delete</button>
+                        <button class="btn btn-sm btn-info" @onclick="() => ShowEditForm(employee)">Edit</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteEmployee(employee)">Delete</button>
                     </td>
                 </tr>
             }
@@ -39,17 +39,17 @@
 
     @if (showEditForm)
     {
-        <div class="modal fade show" id="editPensionerModal" tabindex="-1" role="dialog" style="display:block;">
+        <div class="modal fade show" id="editEmployeeModal" tabindex="-1" role="dialog" style="display:block;">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Edit Pensioner</h5>
+                        <h5 class="modal-title">Edit Employee</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close" @onclick="HideEditForm">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
                     <div class="modal-body">
-                        <PensionerForm Pensioner="selectedPensioner" OnPensionerUpdated="UpdatePensioner" OnCancel="HideEditForm" />
+                        <EmployeeForm Employee="selectedEmployee" OnEmployeeUpdated="UpdateEmployee" OnCancel="HideEditForm" />
                     </div>
                 </div>
             </div>
@@ -59,31 +59,31 @@
 </div>
 
 @code {
-    private List<Pensioner> pensioners = new List<Pensioner>(); // Replace with data fetching
+    private List<Employee> employees = new List<Employee>(); // Replace with data fetching
 
     private bool showCreateForm = false;
     private bool showEditForm = false;
-    private Pensioner selectedPensioner;
+    private Employee selectedEmployee;
 
     protected override void OnInitialized()
-    {        //LoadPensioners(); // Fetch from a service or database
-        pensioners = GetPensioners(); //dummy data
+    {        //LoadEmployees(); // Fetch from a service or database
+        employees = GetEmployees(); //dummy data
     }
-    private List<Pensioner> GetPensioners()
+    private List<Employee> GetEmployees()
     {
         //dummy data
-        return new List<Pensioner>()
+        return new List<Employee>()
     {
-            new Pensioner()
+            new Employee()
             {
-                Name = "Dummy Pensioner 1",
+                Name = "Dummy Employee 1",
                 Department = "IT",
                 Position = "Developer",
                 Email = "dummy1@email.com"
             },
-            new Pensioner()
+            new Employee()
             {
-                Name = "Dummy Pensioner 2",
+                Name = "Dummy Employee 2",
                 Department = "HR",
                 Position = "Manager",
                 Email = "dummy2@email.com"
@@ -101,49 +101,49 @@
         showCreateForm = false;
     }
 
-    private void ShowEditForm(Pensioner pensioner)
+    private void ShowEditForm(Employee employee)
     {
-        selectedPensioner = pensioner;
+        selectedEmployee = employee;
         showEditForm = true;
     }
 
     private void HideEditForm()
     {
         showEditForm = false;
-        selectedPensioner = null;
+        selectedEmployee = null;
     }
 
-    private void AddPensioner(Pensioner newPensioner)
+    private void AddEmployee(Employee newEmployee)
     {
-        pensioners.Add(newPensioner);
+        employees.Add(newEmployee);
         HideCreateForm();
         // Optionally: Show a success notification
     }
 
-    private void UpdatePensioner(Pensioner updatedPensioner)
+    private void UpdateEmployee(Employee updatedEmployee)
     {
-        var existingPensioner = pensioners.FirstOrDefault(e => e.PensionerId == updatedPensioner.PensionerId); // Assuming Employee has an ID
-        if (existingPensioner != null)
+        var existingEmployee = employees.FirstOrDefault(e => e.EmployeeId == updatedEmployee.EmployeeId); // Assuming Employee has an ID
+        if (existingEmployee != null)
         {
             // Update properties of existingEmployee with updatedEmployee
-            existingPensioner.Name = updatedPensioner.Name;
-            existingPensioner.Department = updatedPensioner.Department;
-            existingPensioner.Position = updatedPensioner.Position;
-            existingPensioner.Email = updatedPensioner.Email;
+            existingEmployee.Name = updatedEmployee.Name;
+            existingEmployee.Department = updatedEmployee.Department;
+            existingEmployee.Position = updatedEmployee.Position;
+            existingEmployee.Email = updatedEmployee.Email;
         }
         HideEditForm();
         // Optionally: Show a success notification
     }
 
-    private void DeletePensioner(Pensioner pensionerToDelete)
+    private void DeleteEmployee(Employee employeeToDelete)
     {
-        pensioners.Remove(pensionerToDelete);
+        employees.Remove(employeeToDelete);
         // Optionally: Show a success notification
     }
 
-    public class Pensioner
+    public class Employee
     {
-        public int PensionerId { get; set; } // Example ID
+        public int EmployeeId { get; set; } // Example ID
         public string Name { get; set; }
         public string Department { get; set; }
         public string Position { get; set; }

@@ -1,5 +1,155 @@
-﻿<h3>Component1</h3>
+﻿@page "/interns"
+
+<div class="container">
+    <h2>Interns Management</h2>
+
+    <button class="btn btn-primary mb-3" @onclick="ShowCreateForm">Add Intern</button>
+
+    @if (showCreateForm)
+    {
+        <InternForm OnInternCreated="AddIntern" OnCancel="HideCreateForm" />
+    }
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Department</th>
+                <th>Position</th>
+                <th>Email</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var intern in interns)
+            {
+                <tr>
+                    <td>@intern.Name</td>
+                    <td>@intern.Department</td>
+                    <td>@intern.Position</td>
+                    <td>@intern.Email</td>
+                    <td>
+                        <button class="btn btn-sm btn-info" @onclick="() => ShowEditForm(intern)">Edit</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteIntern(intern)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (showEditForm)
+    {
+        <div class="modal fade show" id="editInternModal" tabindex="-1" role="dialog" style="display:block;">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Intern</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close" @onclick="HideEditForm">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <InternForm Intern="selectedIntern" OnInternUpdated="UpdateIntern" OnCancel="HideEditForm" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-backdrop fade show"></div>
+    }
+</div>
 
 @code {
+    private List<Intern> interns = new List<Intern>(); // Replace with data fetching
 
+    private bool showCreateForm = false;
+    private bool showEditForm = false;
+    private Intern selectedIntern;
+
+    protected override void OnInitialized()
+    {
+        //LoadEmployees(); // Fetch from a service or database
+        interns = GetInterns(); //dummy data
+    }
+    private List<Intern> GetInterns()
+    {
+        //dummy data
+        return new List<Intern>()
+    {
+            new Intern()
+            {
+                Name = "Dummy Intern 1",
+                Department = "IT",
+                Position = "Developer",
+                Email = "dummy1@email.com"
+            },
+            new Intern()
+            {
+                Name = "Dummy Intern 2",
+                Department = "HR",
+                Position = "Manager",
+                Email = "dummy2@email.com"
+            }
+        };
+    }
+
+    private void ShowCreateForm()
+    {
+        showCreateForm = true;
+    }
+
+    private void HideCreateForm()
+    {
+        showCreateForm = false;
+    }
+
+    private void ShowEditForm(Intern intern)
+    {
+        selectedIntern = intern;
+        showEditForm = true;
+    }
+
+    private void HideEditForm()
+    {
+        showEditForm = false;
+        selectedIntern = null;
+    }
+
+    private void AddIntern(Intern newIntern)
+    {
+        interns.Add(newIntern);
+        HideCreateForm();
+        // Optionally: Show a success notification
+    }
+
+    private void UpdateIntern(Intern updatedIntern)
+    {
+        var existingIntern = interns.FirstOrDefault(e => e.InternId == updatedIntern.InternId); // Assuming Employee has an ID
+        if (existingIntern != null)
+        {
+            // Update properties of existingEmployee with updatedEmployee
+            existingIntern.Name = updatedIntern.Name;
+            existingIntern.Department = updatedIntern.Department;
+            existingIntern.Position = updatedIntern.Position;
+            existingIntern.Email = updatedIntern.Email;
+        }
+        HideEditForm();
+        // Optionally: Show a success notification
+    }
+
+    private void DeleteIntern(Intern internToDelete)
+    {
+        interns.Remove(internToDelete);
+        // Optionally: Show a success notification
+    }
+
+    public class Intern
+    {
+        public int InternId { get; set; } // Example ID
+        public string Name { get; set; }
+        public string Department { get; set; }
+        public string Position { get; set; }
+        public string Email { get; set; }
+
+        // Add other relevant properties (e.g., HireDate, Salary, etc.)
+    }
 }
