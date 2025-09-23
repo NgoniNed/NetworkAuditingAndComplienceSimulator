@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using Finance.Data;
+using SharedLibrary.Data.Finance;
 
 namespace Finance.Pages
 {
     public partial class AssetManager
     {
-        private List<Asset> assets = new(); // Populate from backend
+        private List<Asset> assets = new();
 
     }
 }

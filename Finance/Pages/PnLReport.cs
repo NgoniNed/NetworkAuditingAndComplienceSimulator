@@ -1,11 +1,11 @@
 ﻿using System;
-using Finance.Data;
+using SharedLibrary.Data.Finance;
 
 namespace Finance.Pages
 {
     public partial class PnLReport
     {
-        private PnL pnl = new(); // Populate from backend
+        private PnL pnl = new();
 
     }
 }
