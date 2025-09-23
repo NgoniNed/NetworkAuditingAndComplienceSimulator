@@ -11,9 +11,13 @@
   <ItemGroup>
     <None Remove="CyberSecurity.Client" />
     <None Remove="CyberSecurity.Shared" />
+    <None Remove="Controllers\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Client\CyberSecurity.Client.csproj" />
     <ProjectReference Include="..\Shared\CyberSecurity.Shared.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Controllers\" />
   </ItemGroup>
 </Project>
