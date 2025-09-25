@@ -15,17 +15,20 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var asset in assets)
+        @if (assets != null)
         {
-            <tr>
-                <td>@asset.Name</td>
-                <td>@asset.AcquisitionDate.ToShortDateString()</td>
-                <td>@asset.Cost</td>
-                <td>@asset.RunningCosts</td>
-                <td>@asset.MaintenanceCosts</td>
-                <td>@asset.Depreciation</td>
-                <td>@asset.ProfitLoss</td>
-            </tr>
+            @foreach (var asset in assets)
+            {
+                <tr>
+                    <td>@asset.Name</td>
+                    <td>@asset.AcquisitionDate.ToShortDateString()</td>
+                    <td>@asset.Cost</td>
+                    <td>@asset.RunningCosts</td>
+                    <td>@asset.MaintenanceCosts</td>
+                    <td>@asset.Depreciation</td>
+                    <td>@asset.ProfitLoss</td>
+                </tr>
+            }
         }
     </tbody>
 </table>

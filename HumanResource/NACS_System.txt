@@ -1,0 +1,2059 @@
+﻿<Router AppAssembly="@typeof(Program).Assembly" PreferExactMatches="@true">
+    <Found Context="routeData">
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+    </Found>
+    <NotFound>
+        <LayoutView Layout="@typeof(MainLayout)">
+            <p>Sorry, there's nothing at this address.</p>
+        </LayoutView>
+    </NotFound>
+</Router>
+-e 
+--- End of ./App.razor ---
+
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using SharedLibrary.Abstract;
+using SharedLibrary.Interfaces.HumanResource;
+using SharedLibrary.Data.HumanResource;
+using Microsoft.Extensions.Configuration;
+using System.Net.Http;
+using System.Text.Json;
+using System.Text;
+using System.Threading.Tasks;
+using System;
+using System.Collections.Generic;
+
+namespace HumanResources.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class HumanResourcesController : Controller
+    {
+        private readonly ILogger<HumanResourcesController> _logger;
+        private readonly string _centralServerBaseUrl;
+
+        public HumanResourcesController(IConfiguration configuration, ILogger<HumanResourcesController> logger)
+        {
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _centralServerBaseUrl = configuration["CentralServerBaseUrl"];
+        }
+
+        // -------------------- HttpPost Actions --------------------
+
+        [HttpPost("PushEmployee")]
+        public async Task<IActionResult> PushEmployee([FromBody] Employee employee)
+        {
+            if (employee == null)
+            {
+                _logger.LogError("PushEmployee called with null data.");
+                return BadRequest("Employee data cannot be null.");
+            }            
+
+            try
+            {
+                using (HttpClient client = new HttpClient())
+                {
+                    var options = new JsonSerializerOptions
+                    {
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                    };
+                    string json = JsonSerializer.Serialize(employee, options);
+                    var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                    string apiUrl = $"{_centralServerBaseUrl}/api/Data/ReceiveData?dataType=Employee";
+                    _logger.LogInformation($"Sending Employee data to Central Server API: {apiUrl}");
+
+                    HttpResponseMessage response = await client.PostAsync(apiUrl, content);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        _logger.LogInformation($"Employee data sent successfully to Central Server (Status: {response.StatusCode}).");
+                        return Ok();
+                    }
+                    else
+                    {
+                        _logger.LogError($"Error sending Employee data to Central Server. Status code: {response.StatusCode}, Content: {await response.Content.ReadAsStringAsync()}");
+                        return StatusCode((int)response.StatusCode, $"Error: {response.ReasonPhrase}");
+                    }
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError($"HTTP Request Exception: {ex.Message}");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogError($"JSON Serialization Exception: {ex.Message}");
+                return BadRequest($"Invalid data format: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"An unexpected error occurred: {ex.Message}");
+                return StatusCode(500, "An unexpected error occurred.  See logs for details.");
+            }
+        }
+
+        [HttpPost("PushDepartment")]
+        public async Task<IActionResult> PushDepartment([FromBody] Department department)
+        {
+            if (department == null)
+            {
+                _logger.LogError("PushDepartment called with null data.");
+                return BadRequest("Department data cannot be null.");
+            }
+
+            try
+            {
+                using (HttpClient client = new HttpClient())
+                {
+                    var options = new JsonSerializerOptions
+                    {
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                    };
+                    string json = JsonSerializer.Serialize(department, options);
+                    var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                    string apiUrl = $"{_centralServerBaseUrl}/api/Data/ReceiveData?dataType=Department";
+                    _logger.LogInformation($"Sending Department data to Central Server API: {apiUrl}");
+
+                    HttpResponseMessage response = await client.PostAsync(apiUrl, content);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        _logger.LogInformation($"Department data sent successfully to Central Server (Status: {response.StatusCode}).");
+                        return Ok();
+                    }
+                    else
+                    {
+                        _logger.LogError($"Error sending Department data to Central Server. Status code: {response.StatusCode}, Content: {await response.Content.ReadAsStringAsync()}");
+                        return StatusCode((int)response.StatusCode, $"Error: {response.ReasonPhrase}");
+                    }
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError($"HTTP Request Exception: {ex.Message}");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogError($"JSON Serialization Exception: {ex.Message}");
+                return BadRequest($"Invalid data format: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"An unexpected error occurred: {ex.Message}");
+                return StatusCode(500, "An unexpected error occurred.  See logs for details.");
+            }
+        }
+
+        // -------------------- HttpGet Actions --------------------
+        [HttpGet("GetEmployee")]
+        public async Task<ActionResult<List<Employee>>> GetEmployee()
+        {
+            _logger.LogInformation("Calling GetEmployee");
+            try
+            {
+                using (HttpClient client = new HttpClient())
+                {
+                    string apiUrl = $"{_centralServerBaseUrl}/api/Data/GetData?dataType=Employee";
+
+                    HttpResponseMessage response = await client.GetAsync(apiUrl);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        string json = await response.Content.ReadAsStringAsync();
+                        JsonSerializerOptions options = new JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true, 
+                        };
+                        var results = JsonSerializer.Deserialize<List<Employee>>(json, options);
+                        return results;
+                    }
+                    else
+                    {
+                        _logger.LogError($"An unexpected error occurred: {response.ReasonPhrase}");
+                        return StatusCode(500, "An unexpected error occurred.  See logs for details.");
+                    }
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError($"HTTP Request Exception: {ex.Message}");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogError($"JSON Serialization Exception: {ex.Message}");
+                return BadRequest($"Invalid data format: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"An unexpected error occurred: {ex.Message}");
+                return StatusCode(500, "An unexpected error occurred.  See logs for details.");
+            }
+        }
+
+        [HttpGet("GetDepartment")]
+        public async Task<ActionResult<List<Department>>> GetDepartment()
+        {
+            _logger.LogInformation("Calling GetDepartment");
+            try
+            {
+                using (HttpClient client = new HttpClient())
+                {
+                    string apiUrl = $"{_centralServerBaseUrl}/api/Data/GetData?dataType=Department";
+
+                    HttpResponseMessage response = await client.GetAsync(apiUrl);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        string json = await response.Content.ReadAsStringAsync();
+                        JsonSerializerOptions options = new JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true,
+                        };
+                        var results = JsonSerializer.Deserialize<List<Department>>(json, options);
+                        return results;
+                    }
+                    else
+                    {
+                        _logger.LogError($"An unexpected error occurred: {response.ReasonPhrase}");
+                        return StatusCode(500, "An unexpected error occurred.  See logs for details.");
+                    }
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError($"HTTP Request Exception: {ex.Message}");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogError($"JSON Serialization Exception: {ex.Message}");
+                return BadRequest($"Invalid data format: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"An unexpected error occurred: {ex.Message}");
+                return StatusCode(500, "An unexpected error occurred.  See logs for details.");
+            }
+        }
+    }
+}
+-e 
+--- End of ./Controllers/HumanResourceController.cs ---
+
+#See https://aka.ms/containerfastmode to understand how Visual Studio uses this Dockerfile to build your images for faster debugging.
+FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
+
+WORKDIR /app
+
+COPY HumanResource.csproj ./
+
+RUN dotnet restore HumanResource.csproj
+
+COPY ./ ./
+
+RUN dotnet build HumanResource.csproj -c Release -o out
+
+RUN dotnet publish HumanResource.csproj -c Release -o out --no-restore
+
+FROM mcr.microsoft.com/dotnet/aspnet:5.0 AS runtime
+
+WORKDIR /app
+EXPOSE 80
+EXPOSE 443
+
+COPY --from=build /app/out ./
+
+ENTRYPOINT ["dotnet", "HumanResource.dll"]
+-e 
+--- End of ./Dockerfile ---
+
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Microsoft.AspNetCore.SignalR.Client" />
+    <None Remove="Data\" />
+    <None Remove="Models\" />
+    <None Remove="Controllers\" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="5.0.17" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SharedLibrary\SharedLibrary.csproj">
+      <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Data\" />
+    <Folder Include="Models\" />
+    <Folder Include="Controllers\" />
+  </ItemGroup>
+</Project>
+-e 
+--- End of ./HumanResource.csproj ---
+
+﻿<h3>CaseDetails</h3>
+
+@code {
+
+}
+-e 
+--- End of ./Models/CaseDetails.razor ---
+
+﻿@using HumanResource.Pages
+
+<EditForm Model="@caseItem" OnValidSubmit="@HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="Name">Employee Name:</label>
+        <InputText id="Name" class="form-control" @bind-Value="caseItem.EmployeeName" />
+        <ValidationMessage For="@(() => caseItem.EmployeeName)" />
+    </div>
+
+    <div class="form-group">
+        <label for="Date">Date:</label>
+        <InputDate id="Date" class="form-control" @bind-Value="caseItem.Date" />
+        <ValidationMessage For="@(() => caseItem.Date)" />
+    </div>
+
+    <div class="form-group">
+        <label for="Reason">Reason:</label>
+        <InputText id="Reason" class="form-control" @bind-Value="caseItem.Reason" />
+        <ValidationMessage For="@(() => caseItem.Reason)" />
+    </div>
+
+    <button type="submit" class="btn btn-success">Save</button>
+    <button type="button" class="btn btn-secondary" @onclick="OnCancelClicked">Cancel</button>
+</EditForm>
+
+@code
+{
+    [Parameter]
+    public DisciplinaryCase CaseItem { get; set; } = new(); 
+
+    [Parameter]
+    public EventCallback<DisciplinaryCase> OnCaseCreated { get; set; } 
+
+    [Parameter]
+    public EventCallback<DisciplinaryCase> OnCaseUpdated { get; set; } 
+    [Parameter]
+    public EventCallback OnCancel { get; set; }
+
+
+    private DisciplinaryCase caseItem = new();
+    protected override void OnInitialized()
+    {
+        if (CaseItem != null)
+        {
+            caseItem = CaseItem;
+        }
+
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (caseItem.CaseId == 0)
+        {
+            await OnCaseCreated.InvokeAsync(caseItem);
+        }
+        else
+        {
+            await OnCaseUpdated.InvokeAsync(caseItem);
+        }
+    }
+
+    private async Task OnCancelClicked()
+    {
+        await OnCancel.InvokeAsync();
+    }
+}-e 
+--- End of ./Models/CaseForm.razor ---
+
+﻿<h3>CaseList</h3>
+
+@code {
+
+}
+-e 
+--- End of ./Models/CaseList.razor ---
+
+﻿<h3>DepartmentDetails</h3>
+
+@code {
+
+}
+-e 
+--- End of ./Models/DepartmentDetails.razor ---
+
+﻿@using HumanResource.Pages
+
+<EditForm Model="@department" OnValidSubmit="@HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="Name">Name:</label>
+        <InputText id="Name" class="form-control" @bind-Value="department.Name" />
+        <ValidationMessage For="@(() => department.Name)" />
+    </div>
+
+    <div class="form-group">
+        <label for="Description">Description:</label>
+        <InputText id="Description" class="form-control" @bind-Value="department.Description" />
+        <ValidationMessage For="@(() => department.Description)" />
+    </div>
+
+    <button type="submit" class="btn btn-success">Save</button>
+    <button type="button" class="btn btn-secondary" @onclick="OnCancelClicked">Cancel</button>
+</EditForm>
+
+@code
+{
+    [Parameter]
+    public Department Department { get; set; } = new(); 
+
+    [Parameter]
+    public EventCallback<Department> OnDepartmentCreated { get; set; } 
+
+    [Parameter]
+    public EventCallback<Department> OnDepartmentUpdated { get; set; } 
+
+    [Parameter]
+    public EventCallback OnCancel { get; set; }
+
+
+    private Department department = new();
+    protected override void OnInitialized()
+    {
+        if (Department != null)
+        {
+            department = Department;
+        }
+
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (department.DepartmentId == 0)
+        {
+            await OnDepartmentCreated.InvokeAsync(department);
+        }
+        else
+        {
+            await OnDepartmentUpdated.InvokeAsync(department);
+        }
+    }
+
+    private async Task OnCancelClicked()
+    {
+        await OnCancel.InvokeAsync();
+    }
+}-e 
+--- End of ./Models/DepartmentForm.razor ---
+
+﻿<h3>DepartmentList</h3>
+
+@code {
+
+}
+-e 
+--- End of ./Models/DepartmentList.razor ---
+
+﻿<h3>Component1</h3>
+
+@code {
+
+}
+-e 
+--- End of ./Models/EmployeeDetails.razor ---
+
+﻿@using HumanResource.Pages
+
+<EditForm Model="@employee" OnValidSubmit="@HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="Name">Name:</label>
+        <InputText id="Name" class="form-control" @bind-Value="employee.Name" />
+        <ValidationMessage For="@(() => employee.Name)" />
+    </div>
+
+    <div class="form-group">
+        <label for="Department">Department:</label>
+        <InputText id="Department" class="form-control" @bind-Value="employee.Department" />
+        <ValidationMessage For="@(() => employee.Department)" />
+    </div>
+
+    <div class="form-group">
+        <label for="Position">Position:</label>
+        <InputText id="Position" class="form-control" @bind-Value="employee.Position" />
+        <ValidationMessage For="@(() => employee.Position)" />
+    </div>
+
+    <div class="form-group">
+        <label for="Email">Email:</label>
+        <InputText id="Email" class="form-control" @bind-Value="employee.Email" />
+        <ValidationMessage For="@(() => employee.Email)" />
+    </div>
+
+    <button type="submit" class="btn btn-success">Save</button>
+    <button type="button" class="btn btn-secondary" @onclick="OnCancelClicked">Cancel</button>
+</EditForm>
+
+@code
+{
+    [Parameter]
+    public Employee Employee { get; set; } = new(); 
+
+    [Parameter]
+    public EventCallback<Employee> OnEmployeeCreated { get; set; } 
+
+    [Parameter]
+    public EventCallback<Employee> OnEmployeeUpdated { get; set; } 
+
+    [Parameter]
+    public EventCallback OnCancel { get; set; }
+
+
+    private Employee employee = new();
+    protected override void OnInitialized()
+    {
+        if (Employee != null)
+        {
+            employee = Employee;
+        }
+
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (employee.EmployeeId == 0)
+        {
+            await OnEmployeeCreated.InvokeAsync(employee);
+        }
+        else
+        {
+            await OnEmployeeUpdated.InvokeAsync(employee);
+        }
+    }
+
+    private async Task OnCancelClicked()
+    {
+        await OnCancel.InvokeAsync();
+    }
+}-e 
+--- End of ./Models/EmployeeForm.razor ---
+
+﻿<h3>Component1</h3>
+
+@code {
+
+}
+-e 
+--- End of ./Models/EmployeeList.razor ---
+
+﻿
+<h3>Component1</h3>
+
+@code {
+
+}-e 
+--- End of ./Models/InternDetails.razor ---
+
+﻿@using HumanResource.Pages
+
+<EditForm Model="@intern" OnValidSubmit="@HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="Name">Name:</label>
+        <InputText id="Name" class="form-control" @bind-Value="intern.Name" />
+        <ValidationMessage For="@(() => intern.Name)" />
+    </div>
+
+    <div class="form-group">
+        <label for="Department">Department:</label>
+        <InputText id="Department" class="form-control" @bind-Value="intern.Department" />
+        <ValidationMessage For="@(() => intern.Department)" />
+    </div>
+
+    <div class="form-group">
+        <label for="Position">Position:</label>
+        <InputText id="Position" class="form-control" @bind-Value="intern.Position" />
+        <ValidationMessage For="@(() => intern.Position)" />
+    </div>
+
+    <div class="form-group">
+        <label for="Email">Email:</label>
+        <InputText id="Email" class="form-control" @bind-Value="intern.Email" />
+        <ValidationMessage For="@(() => intern.Email)" />
+    </div>
+
+    <button type="submit" class="btn btn-success">Save</button>
+    <button type="button" class="btn btn-secondary" @onclick="OnCancelClicked">Cancel</button>
+</EditForm>
+
+@code
+{
+    [Parameter]
+    public Intern Intern { get; set; } = new(); 
+
+    [Parameter]
+    public EventCallback<Intern> OnInternCreated { get; set; } 
+
+    [Parameter]
+    public EventCallback<Intern> OnInternUpdated { get; set; }
+
+    [Parameter]
+    public EventCallback OnCancel { get; set; }
+
+
+    private Intern intern = new();
+    protected override void OnInitialized()
+    {
+        if (Intern != null)
+        {
+            intern = Intern;
+        }
+
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (intern.InternId == 0)
+        {
+            await OnInternCreated.InvokeAsync(intern);
+        }
+        else
+        {
+            await OnInternUpdated.InvokeAsync(intern);
+        }
+    }
+
+    private async Task OnCancelClicked()
+    {
+        await OnCancel.InvokeAsync();
+    }
+}-e 
+--- End of ./Models/InternForm.razor ---
+
+﻿<h3>InternList</h3>
+
+@code {
+
+}
+-e 
+--- End of ./Models/InternList.razor ---
+
+﻿<h3>Component1</h3>
+
+@code {
+
+}
+-e 
+--- End of ./Models/PensionerDetails.razor ---
+
+﻿@using HumanResource.Pages
+
+<EditForm Model="@pensioner" OnValidSubmit="@HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="Name">Name:</label>
+        <InputText id="Name" class="form-control" @bind-Value="pensioner.Name" />
+        <ValidationMessage For="@(() => pensioner.Name)" />
+    </div>
+
+    <div class="form-group">
+        <label for="Department">Department:</label>
+        <InputText id="Department" class="form-control" @bind-Value="pensioner.LastDepartment" />
+        <ValidationMessage For="@(() => pensioner.LastDepartment)" />
+    </div>
+
+    <div class="form-group">
+        <label for="Position">Position:</label>
+        <InputText id="Position" class="form-control" @bind-Value="pensioner.LastPosition" />
+        <ValidationMessage For="@(() => pensioner.LastPosition)" />
+    </div>
+
+    <div class="form-group">
+        <label for="Email">Email:</label>
+        <InputText id="Email" class="form-control" @bind-Value="pensioner.Email" />
+        <ValidationMessage For="@(() => pensioner.Email)" />
+    </div>
+
+    <button type="submit" class="btn btn-success">Save</button>
+    <button type="button" class="btn btn-secondary" @onclick="OnCancelClicked">Cancel</button>
+</EditForm>
+
+@code {
+    [Parameter]
+    public Pensioner Pensioner { get; set; } = new();
+
+    [Parameter]
+    public EventCallback<Pensioner> OnPensionerCreated { get; set; } 
+
+    [Parameter]
+    public EventCallback<Pensioner> OnPensionerUpdated { get; set; } 
+
+    [Parameter]
+    public EventCallback OnCancel { get; set; }
+
+
+    private Pensioner pensioner = new();
+    protected override void OnInitialized()
+    {
+        if (Pensioner != null)
+        {
+            pensioner = Pensioner;
+        }
+
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (pensioner.PensionerId == 0)
+        {
+            await OnPensionerCreated.InvokeAsync(pensioner);
+        }
+        else
+        {
+            await OnPensionerUpdated.InvokeAsync(pensioner);
+        }
+    }
+
+    private async Task OnCancelClicked()
+    {
+        await OnCancel.InvokeAsync();
+    }
+}-e 
+--- End of ./Models/PensionerForm.razor ---
+
+﻿<h3>Component1</h3>
+
+@code {
+
+}
+-e 
+--- End of ./Models/PensionerList.razor ---
+
+﻿@page "/communication"
+@inject CommunicationService CommunicationService
+
+@implements IAsyncDisposable
+
+<h1>Department Communication</h1>
+
+<div class="chat-container">
+    <div class="message-list">
+        @foreach (var message in messages)
+        {
+            <div class="@(message.SenderDepartment == _departmentName ? "sent" : "received")">
+                <strong>@message.SenderDepartment:</strong> @message.MessageContent
+            </div>
+        }
+    </div>
+
+    <div class="input-area">
+        <select @bind="selectedRecipient">
+            <option value="@_departmentName">@_departmentName (Department Announcement)</option>
+            <option value="Finance">Finance</option>
+            <option value="HumanResources">Human Resources</option>
+            <option value="Logistics">Logistics</option>
+            <option value="CyberSecurity">CyberSecurity</option>
+            <option value="Organization">Organization Announcement</option>
+        </select>
+        <textarea @bind="newMessage" placeholder="Enter your message"></textarea>
+        <button @onclick="SendMessage">Send</button>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Title { get; set; } = "Communication";
+
+    private string _departmentName;
+    private List<Message> messages = new List<Message>();
+    private string newMessage;
+    private string selectedRecipient = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        _departmentName = CommunicationService.DepartmentName;
+        CommunicationService.MessageReceived += HandleMessageReceived;
+        await CommunicationService.StartConnection();
+    }
+
+    private async Task SendMessage()
+    {
+        if (!string.IsNullOrEmpty(newMessage))
+        {
+            MessageType messageType;
+            string recipient = null;
+
+            if (selectedRecipient == "Organization")
+            {
+                messageType = MessageType.OrganizationAnnouncement;
+            }
+            else if (selectedRecipient == _departmentName)
+            {
+                messageType = MessageType.DepartmentAnnouncement;
+            }
+            else
+            {
+                messageType = MessageType.CrossDepartment;
+                recipient = selectedRecipient;
+            }
+
+            await CommunicationService.SendMessage(recipient, newMessage, messageType);
+            newMessage = "";
+        }
+    }
+
+    private void HandleMessageReceived(Message message)
+    {
+        messages.Add(message);
+        StateHasChanged();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        CommunicationService.MessageReceived -= HandleMessageReceived;
+        await CommunicationService.DisposeAsync();
+    }
+}
+
+<style>
+    .chat-container {
+        display: flex;
+        flex-direction: column;
+        height: 500px; 
+        border: 1px solid #ccc;
+        overflow: hidden;
+    }
+
+    .message-list {
+        flex-grow: 1;
+        overflow-y: auto;
+        padding: 10px;
+    }
+
+    .sent {
+        background-color: #DCF8C6;
+        padding: 5px;
+        border-radius: 5px;
+        margin-bottom: 5px;
+        align-self: flex-end; /* Align to the right */
+    }
+
+    .received {
+        background-color: #ECE5DD;
+        padding: 5px;
+        border-radius: 5px;
+        margin-bottom: 5px;
+        align-self: flex-start; /* Align to the left */
+    }
+
+    .input-area {
+        display: flex;
+        padding: 10px;
+        border-top: 1px solid #ccc;
+    }
+
+        .input-area textarea {
+            flex-grow: 1;
+            resize: none;
+            border: 1px solid #ccc;
+            padding: 5px;
+        }
+
+        .input-area button {
+            margin-left: 10px;
+        }
+</style>-e 
+--- End of ./Pages/Communication.razor ---
+
+﻿@page "/departments"
+
+<div class="container">
+    <h2>Department Management</h2>
+
+    <button class="btn btn-primary mb-3" @onclick="ShowCreateForm">Add Department</button>
+
+    @if (showCreateForm)
+    {
+        <DepartmentForm OnDepartmentCreated="AddDepartment" OnCancel="HideCreateForm" />
+    }
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var department in departments)
+            {
+                <tr>
+                    <td>@department.Name</td>
+                    <td>@department.Description</td>
+                    <td>
+                        <button class="btn btn-sm btn-info" @onclick="() => ShowEditForm(department)">Edit</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteDepartment(department)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (showEditForm)
+    {
+        <div class="modal fade show" id="editDepartmentModal" tabindex="-1" role="dialog" style="display:block;">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Department</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close" @onclick="HideEditForm">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <DepartmentForm Department="selectedDepartment" OnDepartmentUpdated="UpdateDepartment" OnCancel="HideEditForm" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-backdrop fade show"></div>
+    }
+</div>
+
+@code {
+    private List<Department> departments = new List<Department>();
+
+    private bool showCreateForm = false;
+    private bool showEditForm = false;
+    private Department selectedDepartment;
+
+    protected override void OnInitialized()
+    {
+        departments = GetDepartments();
+    }
+    private List<Department> GetDepartments()
+    {
+        return new List<Department>()
+    {
+            new Department()
+            {
+                Name = "Dummy Department 1",
+                Description = "Description 1"
+            },
+            new Department()
+            {
+                Name = "Dummy Department 2",
+                Description = "Description 2"
+            }
+        };
+    }
+
+    private void ShowCreateForm()
+    {
+        showCreateForm = true;
+    }
+
+    private void HideCreateForm()
+    {
+        showCreateForm = false;
+    }
+
+    private void ShowEditForm(Department department)
+    {
+        selectedDepartment = department;
+        showEditForm = true;
+    }
+
+    private void HideEditForm()
+    {
+        showEditForm = false;
+        selectedDepartment = null;
+    }
+
+    private void AddDepartment(Department newDepartment)
+    {
+        departments.Add(newDepartment);
+        HideCreateForm();
+    }
+
+    private void UpdateDepartment(Department updatedDepartment)
+    {
+        var existingDepartment = departments.FirstOrDefault(e => e.DepartmentId == updatedDepartment.DepartmentId); 
+        if (existingDepartment != null)
+        {
+            existingDepartment.Name = updatedDepartment.Name;
+            existingDepartment.Description = updatedDepartment.Description;
+        }
+        HideEditForm();
+    }
+
+    private void DeleteDepartment(Department departmentToDelete)
+    {
+        departments.Remove(departmentToDelete);
+    }
+
+    public class Department
+    {
+        public int DepartmentId { get; set; } 
+        public string Name { get; set; }
+        public string Description { get; set; }
+
+    }
+}-e 
+--- End of ./Pages/Departments.razor ---
+
+﻿@page "/disciplinary"
+
+<div class="container">
+    <h2>Disciplinary Cases</h2>
+
+    <button class="btn btn-primary mb-3" @onclick="ShowCreateForm">Add Case</button>
+
+    @if (showCreateForm)
+    {
+        <CaseForm OnCaseCreated="AddCase" OnCancel="HideCreateForm" />
+    }
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Employee Name</th>
+                <th>Date</th>
+                <th>Reason</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var caseItem in cases)
+            {
+                <tr>
+                    <td>@caseItem.EmployeeName</td>
+                    <td>@caseItem.Date.ToShortDateString()</td>
+                    <td>@caseItem.Reason</td>
+                    <td>
+                        <button class="btn btn-sm btn-info" @onclick="() => ShowEditForm(caseItem)">Edit</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteCase(caseItem)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (showEditForm)
+    {
+        <div class="modal fade show" id="editCaseModal" tabindex="-1" role="dialog" style="display:block;">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Case</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close" @onclick="HideEditForm">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <CaseForm CaseItem="selectedCase" OnCaseUpdated="UpdateCase" OnCancel="HideEditForm" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-backdrop fade show"></div>
+    }
+</div>
+
+@code {
+    private List<DisciplinaryCase> cases = new List<DisciplinaryCase>(); 
+
+    private bool showCreateForm = false;
+    private bool showEditForm = false;
+    private DisciplinaryCase selectedCase;
+
+    protected override void OnInitialized()
+    {
+        cases = GetCases(); 
+    }
+    private List<DisciplinaryCase> GetCases()
+    {
+        return new List<DisciplinaryCase>()
+    {
+            new DisciplinaryCase()
+            {
+                EmployeeName = "Dummy Employee 1",
+                Date = DateTime.Now,
+                Reason = "Reason 1"
+            },
+            new DisciplinaryCase()
+            {
+                EmployeeName = "Dummy Employee 2",
+                Date = DateTime.Now,
+                Reason = "Reason 2"
+            }
+        };
+    }
+
+    private void ShowCreateForm()
+    {
+        showCreateForm = true;
+    }
+
+    private void HideCreateForm()
+    {
+        showCreateForm = false;
+    }
+
+    private void ShowEditForm(DisciplinaryCase caseItem)
+    {
+        selectedCase = caseItem;
+        showEditForm = true;
+    }
+
+    private void HideEditForm()
+    {
+        showEditForm = false;
+        selectedCase = null;
+    }
+
+    private void AddCase(DisciplinaryCase newCase)
+    {
+        cases.Add(newCase);
+        HideCreateForm();
+    }
+
+    private void UpdateCase(DisciplinaryCase updatedCase)
+    {
+        var existingCase = cases.FirstOrDefault(e => e.CaseId == updatedCase.CaseId); 
+        if (existingCase != null)
+        {
+            existingCase.EmployeeName = updatedCase.EmployeeName;
+            existingCase.Date = updatedCase.Date;
+            existingCase.Reason = updatedCase.Reason;
+        }
+        HideEditForm();
+    }
+
+    private void DeleteCase(DisciplinaryCase caseToDelete)
+    {
+        cases.Remove(caseToDelete);
+    }
+
+    public class DisciplinaryCase
+    {
+        public int CaseId { get; set; } 
+        public string EmployeeName { get; set; }
+        public DateTime Date { get; set; }
+        public string Reason { get; set; }
+
+    }
+}-e 
+--- End of ./Pages/Disciplinary.razor ---
+
+﻿@page "/employees"
+
+<div class="container">
+    <h2>Employee Management</h2>
+
+    <button class="btn btn-primary mb-3" @onclick="ShowCreateForm">Add Employee</button>
+
+    @if (showCreateForm)
+    {
+        <EmployeeForm OnEmployeeCreated="AddEmployee" OnCancel="HideCreateForm" />
+    }
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Department</th>
+                <th>Position</th>
+                <th>Email</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var employee in employees)
+            {
+                <tr>
+                    <td>@employee.Name</td>
+                    <td>@employee.Department</td>
+                    <td>@employee.Position</td>
+                    <td>@employee.Email</td>
+                    <td>
+                        <button class="btn btn-sm btn-info" @onclick="() => ShowEditForm(employee)">Edit</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteEmployee(employee)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (showEditForm)
+    {
+        <div class="modal fade show" id="editEmployeeModal" tabindex="-1" role="dialog" style="display:block;">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Employee</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close" @onclick="HideEditForm">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <EmployeeForm Employee="selectedEmployee" OnEmployeeUpdated="UpdateEmployee" OnCancel="HideEditForm" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-backdrop fade show"></div>
+    }
+</div>
+
+@code {
+    private List<Employee> employees = new List<Employee>(); 
+
+    private bool showCreateForm = false;
+    private bool showEditForm = false;
+    private Employee selectedEmployee;
+
+    protected override void OnInitialized()
+    {        
+        employees = GetEmployees(); 
+    }
+    private List<Employee> GetEmployees()
+    {
+        return new List<Employee>()
+    {
+            new Employee()
+            {
+                Name = "Dummy Employee 1",
+                Department = "IT",
+                Position = "Developer",
+                Email = "dummy1@email.com"
+            },
+            new Employee()
+            {
+                Name = "Dummy Employee 2",
+                Department = "HR",
+                Position = "Manager",
+                Email = "dummy2@email.com"
+            }
+        };
+    }
+
+    private void ShowCreateForm()
+    {
+        showCreateForm = true;
+    }
+
+    private void HideCreateForm()
+    {
+        showCreateForm = false;
+    }
+
+    private void ShowEditForm(Employee employee)
+    {
+        selectedEmployee = employee;
+        showEditForm = true;
+    }
+
+    private void HideEditForm()
+    {
+        showEditForm = false;
+        selectedEmployee = null;
+    }
+
+    private void AddEmployee(Employee newEmployee)
+    {
+        employees.Add(newEmployee);
+        HideCreateForm();
+    }
+
+    private void UpdateEmployee(Employee updatedEmployee)
+    {
+        var existingEmployee = employees.FirstOrDefault(e => e.EmployeeId == updatedEmployee.EmployeeId); 
+        if (existingEmployee != null)
+        {
+            existingEmployee.Name = updatedEmployee.Name;
+            existingEmployee.Department = updatedEmployee.Department;
+            existingEmployee.Position = updatedEmployee.Position;
+            existingEmployee.Email = updatedEmployee.Email;
+        }
+        HideEditForm();
+    }
+
+    private void DeleteEmployee(Employee employeeToDelete)
+    {
+        employees.Remove(employeeToDelete);
+    }
+
+    public class Employee
+    {
+        public int EmployeeId { get; set; }
+        public string Name { get; set; }
+        public string Department { get; set; }
+        public string Position { get; set; }
+        public string Email { get; set; }
+
+    }
+}-e 
+--- End of ./Pages/Employees.razor ---
+
+﻿@page
+@model HumanResource.Pages.ErrorModel
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Error</title>
+    <link href="~/css/bootstrap/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/css/app.css" rel="stylesheet" />
+</head>
+
+<body>
+    <div class="main">
+        <div class="content px-4">
+            <h1 class="text-danger">Error.</h1>
+            <h2 class="text-danger">An error occurred while processing your request.</h2>
+
+            @if (Model.ShowRequestId)
+            {
+                <p>
+                    <strong>Request ID:</strong> <code>@Model.RequestId</code>
+                </p>
+            }
+
+            <h3>Development Mode</h3>
+            <p>
+                Swapping to the <strong>Development</strong> environment displays detailed information about the error that occurred.
+            </p>
+            <p>
+                <strong>The Development environment shouldn't be enabled for deployed applications.</strong>
+                It can result in displaying sensitive information from exceptions to end users.
+                For local debugging, enable the <strong>Development</strong> environment by setting the <strong>ASPNETCORE_ENVIRONMENT</strong> environment variable to <strong>Development</strong>
+                and restarting the app.
+            </p>
+        </div>
+    </div>
+</body>
+
+</html>
+-e 
+--- End of ./Pages/Error.cshtml ---
+
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.Logging;
+
+namespace HumanResource.Pages
+{
+    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+    [IgnoreAntiforgeryToken]
+    public class ErrorModel : PageModel
+    {
+        public string RequestId { get; set; }
+
+        public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
+
+        private readonly ILogger<ErrorModel> _logger;
+
+        public ErrorModel(ILogger<ErrorModel> logger)
+        {
+            _logger = logger;
+        }
+
+        public void OnGet()
+        {
+            RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier;
+        }
+    }
+}
+-e 
+--- End of ./Pages/Error.cshtml.cs ---
+
+﻿@page "/hrinfo"
+
+<div class="container">
+    <h2>HR Information and Policies</h2>
+
+    <ul>
+        <li><a href="#">Company Handbook</a></li>
+        <li><a href="#">Employee Benefits Summary</a></li>
+        <li><a href="#">Code of Conduct</a></li>
+        <li><a href="#">Leave Policy</a></li>
+    </ul>
+
+    <p>Contact HR Department for any questions about policies</p>
+</div>-e 
+--- End of ./Pages/HRInfo.razor ---
+
+﻿@page "/"
+
+<div class="container-fluid">
+    <h2>HR Dashboard</h2>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card bg-light mb-3">
+                <div class="card-header">Employee Count</div>
+                <div class="card-body">
+                    <h4 class="card-title">150</h4>
+                    <p class="card-text">Total number of employees.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card bg-light mb-3">
+                <div class="card-header">Open Positions</div>
+                <div class="card-body">
+                    <h4 class="card-title">5</h4>
+                    <p class="card-text">Number of currently open job positions.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card bg-light mb-3">
+                <div class="card-header">New Hires (Last Month)</div>
+                <div class="card-body">
+                    <h4 class="card-title">10</h4>
+                    <p class="card-text">Number of employees hired in the past month.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h3>Quick Actions</h3>
+    <ul>
+        <li><a href="/employees">Manage Employees</a></li>
+        <li><a href="/departments">Manage Departments</a></li>
+        <li><a href="/disciplinary">Review Disciplinary Cases</a></li>
+    </ul>
+</div>-e 
+--- End of ./Pages/Index.razor ---
+
+﻿@page "/interns"
+
+<div class="container">
+    <h2>Interns Management</h2>
+
+    <button class="btn btn-primary mb-3" @onclick="ShowCreateForm">Add Intern</button>
+
+    @if (showCreateForm)
+    {
+        <InternForm OnInternCreated="AddIntern" OnCancel="HideCreateForm" />
+    }
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Department</th>
+                <th>Position</th>
+                <th>Email</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var intern in interns)
+            {
+                <tr>
+                    <td>@intern.Name</td>
+                    <td>@intern.Department</td>
+                    <td>@intern.Position</td>
+                    <td>@intern.Email</td>
+                    <td>
+                        <button class="btn btn-sm btn-info" @onclick="() => ShowEditForm(intern)">Edit</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteIntern(intern)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (showEditForm)
+    {
+        <div class="modal fade show" id="editInternModal" tabindex="-1" role="dialog" style="display:block;">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Intern</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close" @onclick="HideEditForm">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <InternForm Intern="selectedIntern" OnInternUpdated="UpdateIntern" OnCancel="HideEditForm" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-backdrop fade show"></div>
+    }
+</div>
+
+@code {
+    private List<Intern> interns = new List<Intern>(); 
+
+    private bool showCreateForm = false;
+    private bool showEditForm = false;
+    private Intern selectedIntern;
+
+    protected override void OnInitialized()
+    {
+        interns = GetInterns(); 
+    }
+    private List<Intern> GetInterns()
+    {
+        return new List<Intern>()
+    {
+            new Intern()
+            {
+                Name = "Dummy Intern 1",
+                Department = "IT",
+                Position = "Developer",
+                Email = "dummy1@email.com"
+            },
+            new Intern()
+            {
+                Name = "Dummy Intern 2",
+                Department = "HR",
+                Position = "Manager",
+                Email = "dummy2@email.com"
+            }
+        };
+    }
+
+    private void ShowCreateForm()
+    {
+        showCreateForm = true;
+    }
+
+    private void HideCreateForm()
+    {
+        showCreateForm = false;
+    }
+
+    private void ShowEditForm(Intern intern)
+    {
+        selectedIntern = intern;
+        showEditForm = true;
+    }
+
+    private void HideEditForm()
+    {
+        showEditForm = false;
+        selectedIntern = null;
+    }
+
+    private void AddIntern(Intern newIntern)
+    {
+        interns.Add(newIntern);
+        HideCreateForm();
+    }
+
+    private void UpdateIntern(Intern updatedIntern)
+    {
+        var existingIntern = interns.FirstOrDefault(e => e.InternId == updatedIntern.InternId);
+        if (existingIntern != null)
+        {
+            existingIntern.Name = updatedIntern.Name;
+            existingIntern.Department = updatedIntern.Department;
+            existingIntern.Position = updatedIntern.Position;
+            existingIntern.Email = updatedIntern.Email;
+        }
+        HideEditForm();
+    }
+
+    private void DeleteIntern(Intern internToDelete)
+    {
+        interns.Remove(internToDelete);
+    }
+
+    
+}-e 
+--- End of ./Pages/Interns.razor ---
+
+﻿@page "/pensioners"
+
+<div class="container">
+    <h2>Pensioners Management</h2>
+
+    <button class="btn btn-primary mb-3" @onclick="ShowCreateForm">Add Pensioner</button>
+
+    @if (showCreateForm)
+    {
+        <PensionerForm OnPensionerCreated="AddPensioner" OnCancel="HideCreateForm" />
+    }
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Past Department</th>
+                <th>Past Position</th>
+                <th>Email</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var pensioner in pensioners)
+            {
+                <tr>
+                    <td>@pensioner.Name</td>
+                    <td>@pensioner.LastDepartment</td>
+                    <td>@pensioner.LastPosition</td>
+                    <td>@pensioner.Email</td>
+                    <td>
+                        <button class="btn btn-sm btn-info" @onclick="() => ShowEditForm(pensioner)">Edit</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeletePensioner(pensioner)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (showEditForm)
+    {
+        <div class="modal fade show" id="editPensionerModal" tabindex="-1" role="dialog" style="display:block;">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Pensioner</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close" @onclick="HideEditForm">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <PensionerForm Pensioner="selectedPensioner" OnPensionerUpdated="UpdatePensioner" OnCancel="HideEditForm" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-backdrop fade show"></div>
+    }
+</div>
+
+@code {
+    private List<Pensioner> pensioners = new List<Pensioner>();
+
+    private bool showCreateForm = false;
+    private bool showEditForm = false;
+    private Pensioner selectedPensioner;
+
+    protected override void OnInitialized()
+    {        
+        pensioners = GetPensioners();
+    }
+    private List<Pensioner> GetPensioners()
+    {
+        return new List<Pensioner>()
+    {
+            new Pensioner()
+            {
+                Name = "Dummy Pensioner 1",
+                LastDepartment = "IT",
+                LastPosition = "Developer",
+                Email = "dummy1@email.com"
+            },
+            new Pensioner()
+            {
+                Name = "Dummy Pensioner 2",
+                LastDepartment = "HR",
+                LastPosition = "Manager",
+                Email = "dummy2@email.com"
+            }
+        };
+    }
+
+    private void ShowCreateForm()
+    {
+        showCreateForm = true;
+    }
+
+    private void HideCreateForm()
+    {
+        showCreateForm = false;
+    }
+
+    private void ShowEditForm(Pensioner pensioner)
+    {
+        selectedPensioner = pensioner;
+        showEditForm = true;
+    }
+
+    private void HideEditForm()
+    {
+        showEditForm = false;
+        selectedPensioner = null;
+    }
+
+    private void AddPensioner(Pensioner newPensioner)
+    {
+        pensioners.Add(newPensioner);
+        HideCreateForm();
+    }
+
+    private void UpdatePensioner(Pensioner updatedPensioner)
+    {
+        var existingPensioner = pensioners.FirstOrDefault(e => e.PensionerId == updatedPensioner.PensionerId); 
+        if (existingPensioner != null)
+        {
+            existingPensioner.Name = updatedPensioner.Name;
+            existingPensioner.LastDepartment = updatedPensioner.LastDepartment;
+            existingPensioner.LastPosition = updatedPensioner.LastPosition;
+            existingPensioner.Email = updatedPensioner.Email;
+        }
+        HideEditForm();
+    }
+
+    private void DeletePensioner(Pensioner pensionerToDelete)
+    {
+        pensioners.Remove(pensionerToDelete);
+    }
+
+}-e 
+--- End of ./Pages/Pensioners.razor ---
+
+﻿@page "/"
+@namespace HumanResource.Pages
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HumanResource</title>
+    <base href="~/" />
+    <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
+    <link href="css/site.css" rel="stylesheet" />
+    <link href="HumanResource.styles.css" rel="stylesheet" />
+</head>
+<body>
+    <component type="typeof(App)" render-mode="ServerPrerendered" />
+
+    <div id="blazor-error-ui">
+        <environment include="Staging,Production">
+            An error has occurred. This application may no longer respond until reloaded.
+        </environment>
+        <environment include="Development">
+            An unhandled exception has occurred. See browser dev tools for details.
+        </environment>
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+
+    <script src="_framework/blazor.server.js"></script>
+</body>
+</html>
+-e 
+--- End of ./Pages/_Host.cshtml ---
+
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+
+namespace HumanResource
+{
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            CreateHostBuilder(args).Build().Run();
+        }
+
+        public static IHostBuilder CreateHostBuilder(string[] args) =>
+            Host.CreateDefaultBuilder(args)
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder.UseStartup<Startup>();
+                });
+    }
+}
+-e 
+--- End of ./Program.cs ---
+
+{
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:26012",
+      "sslPort": 44362
+    }
+  },
+  "profiles": {
+    "IIS Express": {
+      "commandName": "IISExpress",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "HumanResource": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "applicationUrl": "https://localhost:27078;http://localhost:58395",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}-e 
+--- End of ./Properties/launchSettings.json ---
+
+﻿@inherits LayoutComponentBase
+
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+
+    <div class="main">
+        <div class="top-row px-4">
+            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
+        </div>
+
+        <div class="content px-4">
+            @Body
+        </div>
+    </div>
+</div>
+-e 
+--- End of ./Shared/MainLayout.razor ---
+
+﻿<div class="top-row pl-4 navbar navbar-dark">
+    <a class="navbar-brand" href="">HR Department</a>
+    <button class="navbar-toggler" @onclick="ToggleNavMenu">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+</div>
+
+<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
+    <ul class="nav flex-column">
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="oi oi-dashboard" aria-hidden="true"></span> Dashboard
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="employees">
+                <span class="oi oi-people" aria-hidden="true"></span> Employees
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="interns">
+                <span class="oi oi-person" aria-hidden="true"></span> Interns
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="pensioners">
+                <span class="oi oi-person" aria-hidden="true"></span> Pensioners
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="departments">
+                <span class="oi oi-home" aria-hidden="true"></span> Departments
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="disciplinary">
+                <span class="oi oi-warning" aria-hidden="true"></span> Disciplinary Cases
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="hrinfo">
+                <span class="oi oi-info" aria-hidden="true"></span> HR Information
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="communication">
+                <span class="oi oi-chat" aria-hidden="true"></span> Communication
+            </NavLink>
+        </li>
+    </ul>
+</div>
+
+@code {
+    private bool collapseNavMenu = true;
+
+    private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+}-e 
+--- End of ./Shared/NavMenu.razor ---
+
+﻿<div class="alert alert-secondary mt-4" role="alert">
+    <span class="oi oi-pencil mr-2" aria-hidden="true"></span>
+    <strong>@Title</strong>
+
+    <span class="text-nowrap">
+        Please take our
+        <a target="_blank" class="font-weight-bold" href="https://go.microsoft.com/fwlink/?linkid=2137813">brief survey</a>
+    </span>
+    and tell us what you think.
+</div>
+
+@code {
+    [Parameter]
+    public string Title { get; set; }
+}
+-e 
+--- End of ./Shared/SurveyPrompt.razor ---
+
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using SharedLibrary.Services;
+
+namespace HumanResource
+{
+    public class Startup
+    {
+        public Startup(IConfiguration configuration)
+        {
+            Configuration = configuration;
+        }
+
+        public IConfiguration Configuration { get; }
+
+        // This method gets called by the runtime. Use this method to add services to the container.
+        // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
+        public void ConfigureServices(IServiceCollection services)
+        {
+            string departmentName = Configuration["DepartmentName"];
+            services.AddRazorPages();
+            services.AddServerSideBlazor();
+            services.AddSingleton(new CommunicationService(departmentName));
+        }
+
+        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        {
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+            else
+            {
+                app.UseExceptionHandler("/Error");
+                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+                app.UseHsts();
+            }
+
+            app.UseHttpsRedirection();
+            app.UseStaticFiles();
+
+            app.UseRouting();
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapBlazorHub();
+                endpoints.MapFallbackToPage("/_Host");
+            });
+        }
+    }
+}
+-e 
+--- End of ./Startup.cs ---
+
+﻿@using System.Net.Http
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Routing
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components.Web.Virtualization
+@using Microsoft.JSInterop
+@using HumanResource
+@using HumanResource.Shared
+@using SharedLibrary.Services
+@using SharedLibrary.Data
+@using SharedLibrary.Data.HumanResource
+
+@using Microsoft.Extensions.Configuration-e 
+--- End of ./_Imports.razor ---
+
+﻿{
+  "DetailedErrors": true,
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft": "Warning",
+      "Microsoft.Hosting.Lifetime": "Information"
+    }
+  }
+}
+-e 
+--- End of ./appsettings.Development.json ---
+
+﻿{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft": "Warning",
+      "Microsoft.Hosting.Lifetime": "Information"
+    }
+  },
+  "AllowedHosts": "*",
+  "NetworkConfig": {
+    "IPAddress": "127.0.5.1",
+    "ChatIPAddress": "127.0.1.5",
+    "Port": 5000
+  },
+  "CentralServerBaseUrl": "https://localhost:7000",
+  "DepartmentName": "HumanResources"
+}
+-e 
+--- End of ./appsettings.json ---
+

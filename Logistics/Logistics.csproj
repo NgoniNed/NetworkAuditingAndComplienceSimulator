@@ -8,6 +8,7 @@
     <None Remove="Microsoft.AspNetCore.SignalR.Client" />
     <None Remove="Data\" />
     <None Remove="Components\" />
+    <None Remove="Controllers\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="5.0.17" />
@@ -20,5 +21,6 @@
   <ItemGroup>
     <Folder Include="Data\" />
     <Folder Include="Components\" />
+    <Folder Include="Controllers\" />
   </ItemGroup>
 </Project>

@@ -1,6 +1,7 @@
 ﻿@page "/events"
 @using CentralServer.Data
-
+@using Services
+@inject DataService DataService
 <h3>System Events</h3>
 
 <EventForm OnCreate="AddEvent" />
@@ -9,11 +10,19 @@
     <EventFeed Events="@eventEntries" />
 </div>
 
-    @code {
-        private List<EventEntry> eventEntries = new();
+@code {
+    private List<EventEntry> eventEntries = new();
 
-        private void AddEvent(EventEntry evt)
-        {
-            eventEntries.Add(evt);
-        }
+    protected override void OnInitialized()
+    {
+        eventEntries = DataService.GetEventMessages();
+        DataService.EventMessageOnChange += StateHasChanged;
+        
+        
     }
+
+    private void AddEvent(EventEntry evt)
+    {
+        DataService.AddEventMessage(evt);
+    }
+}

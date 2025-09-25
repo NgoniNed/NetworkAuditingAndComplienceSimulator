@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components;
@@ -28,6 +29,7 @@ namespace Finance
         {
             string departmentName = Configuration["DepartmentName"];
             services.AddRazorPages();
+            services.AddScoped<HttpClient>();
             services.AddServerSideBlazor();
             services.AddSingleton(new CommunicationService(departmentName));
         }
@@ -54,6 +56,7 @@ namespace Finance
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapBlazorHub();
+                endpoints.MapControllers();
                 endpoints.MapFallbackToPage("/_Host");
             });
         }

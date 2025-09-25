@@ -28,6 +28,7 @@ namespace CentralServer
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSignalR();
+            services.AddSingleton<Services.DataService>();
             services.AddRazorPages();
             services.AddServerSideBlazor();
         }
@@ -54,6 +55,7 @@ namespace CentralServer
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapBlazorHub();
+                endpoints.MapControllers();
                 endpoints.MapHub<CommunicationHub>("/communicationHub");
                 endpoints.MapFallbackToPage("/_Host");
             });
