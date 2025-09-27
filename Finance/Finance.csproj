@@ -9,9 +9,11 @@
     <None Remove="Data\" />
     <None Remove="Components\" />
     <None Remove="Controllers\" />
+    <None Remove="Blazorise" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="5.0.17" />
+    <PackageReference Include="Blazorise" Version="0.9.3" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SharedLibrary\SharedLibrary.csproj">

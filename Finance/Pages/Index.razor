@@ -1,4 +1,24 @@
 ﻿@page "/"
+@inject NavigationManager Navigation
 
-<h2>Finance Department Dashboard</h2>
+<h3 class="mb-4"> Financial Overview</h3>
 
+@if (selectedCategory != null)
+{
+    <div class="mt-4">
+        <h5>Details for: @selectedCategory</h5>
+
+        <p>Revenue: $120,000</p>
+        <p>Expenses: $85,000</p>
+        <p>Profit Margin: 29%</p>
+    </div>
+}
+
+@code {
+    private string selectedCategory;
+
+    protected override void OnInitialized()
+    {
+        selectedCategory = "default";
+    }
+}

@@ -39,8 +39,6 @@ namespace Finance.Pages
             catch (Exception ex)
             {
                 Console.WriteLine($"Error fetching assets: {ex.Message}");
-                // Handle error (e.g., display an error message to the user)
-                // You might want to display an error message in the UI instead of just logging to the console.
             }
         }
     }

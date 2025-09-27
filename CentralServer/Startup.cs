@@ -31,6 +31,7 @@ namespace CentralServer
             services.AddSingleton<Services.DataService>();
             services.AddRazorPages();
             services.AddServerSideBlazor();
+            services.AddSingleton<Dispatcher>(sp => Dispatcher.CreateDefault());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

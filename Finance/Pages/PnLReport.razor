@@ -1,20 +1,30 @@
 ﻿@page "/pnlreport"
 
 <h3>Profit & Loss Report</h3>
+@if (pnl == null || !pnl.Any())
+{
+    <p>
+        @(pnl == null ? "Loading..":"No Profit and Loss data available.")
+    </p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Revenue</th>
+                <th>Expenses</th>
+                <th>Net Profit</th>
+            </tr>
+        </thead>
+        <tbody>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Revenue</th>
-            <th>Expenses</th>
-            <th>Net Profit</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td>@pnl.Revenue</td>
-            <td>@pnl.Expenses</td>
-            <td>@pnl.NetProfit</td>
-        </tr>
-    </tbody>
-</table>
+            <tr>
+                <td>@pnl.FirstOrDefault().Revenue</td>
+                <td>@pnl.FirstOrDefault().Expenses</td>
+                <td>@pnl.FirstOrDefault().NetProfit</td>
+            </tr>
+        </tbody>
+    </table>
+}
+
