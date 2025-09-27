@@ -61,19 +61,18 @@
 </div>
 
 @code {
-    private List<FuelLog> fuelLogs = new List<FuelLog>(); // Replace with data fetching
+    private List<FuelLog> fuelLogs = new List<FuelLog>();
 
     private bool showCreateForm = false;
     private bool showEditForm = false;
     private FuelLog selectedFuelLog;
 
     protected override void OnInitialized()
-    {        //LoadFuelLogs(); // Fetch from a service or database
-        fuelLogs = GetFuelLogs(); //dummy data
+    {        
+        fuelLogs = GetFuelLogs();
     }
     private List<FuelLog> GetFuelLogs()
     {
-        //dummy data
         return new List<FuelLog>()
     {
             new FuelLog()
@@ -121,15 +120,13 @@
     {
         fuelLogs.Add(newFuel);
         HideCreateForm();
-        // Optionally: Show a success notification
     }
 
     private void UpdateFuel(FuelLog updatedFuel)
     {
-        var existingFuel = fuelLogs.FirstOrDefault(e => e.FuelLogId == updatedFuel.FuelLogId); // Assuming FuelLog has an ID
+        var existingFuel = fuelLogs.FirstOrDefault(e => e.FuelLogId == updatedFuel.FuelLogId);
         if (existingFuel != null)
         {
-            // Update properties of existingEmployee with updatedEmployee
             existingFuel.Date = updatedFuel.Date;
             existingFuel.EquipmentId = updatedFuel.EquipmentId;
             existingFuel.LitersFilled = updatedFuel.LitersFilled;
@@ -137,12 +134,10 @@
             existingFuel.OdometerReading = updatedFuel.OdometerReading;
         }
         HideEditForm();
-        // Optionally: Show a success notification
     }
 
     private void DeleteFuel(FuelLog fuelToDelete)
     {
         fuelLogs.Remove(fuelToDelete);
-        // Optionally: Show a success notification
     }
 }

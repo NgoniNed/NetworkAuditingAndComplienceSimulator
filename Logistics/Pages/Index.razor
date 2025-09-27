@@ -64,35 +64,29 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // Load data from your services or database here
         shipmentsInTransit = await GetShipmentsInTransitCount();
         equipmentDueForService = await GetEquipmentDueForServiceCount();
         totalCostsLastMonth = await GetTotalCostsLastMonth();
         averageFuelConsumption = await GetAverageFuelConsumptionThisWeek();
     }
 
-    // Placeholder methods to fetch data (replace with your actual data access logic)
     private async Task<int> GetShipmentsInTransitCount()
     {
-        // Replace with your data fetching logic
         return 15;
     }
 
     private async Task<int> GetEquipmentDueForServiceCount()
     {
-        // Replace with your data fetching logic
         return 2;
     }
 
     private async Task<decimal> GetTotalCostsLastMonth()
     {
-        // Replace with your data fetching logic
         return 5000.00m;
     }
 
     private async Task<decimal> GetAverageFuelConsumptionThisWeek()
     {
-        // Replace with your data fetching logic
         return 50.50m;
     }
 }

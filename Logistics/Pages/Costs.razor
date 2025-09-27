@@ -59,7 +59,7 @@
 </div>
 
 @code {
-    private List<CostLog> costs = new List<CostLog>(); // Replace with data fetching
+    private List<CostLog> costs = new List<CostLog>();
 
     private bool showCreateForm = false;
     private bool showEditForm = false;
@@ -67,12 +67,10 @@
 
     protected override void OnInitialized()
     {
-        //LoadCosts(); // Fetch from a service or database
-        costs = GetCosts(); //dummy data
+        costs = GetCosts();
     }
     private List<CostLog> GetCosts()
     {
-        //dummy data
         return new List<CostLog>()
 {
             new CostLog()
@@ -118,27 +116,23 @@
     {
         costs.Add(newCost);
         HideCreateForm();
-        // Optionally: Show a success notification
     }
 
     private void UpdateCost(CostLog updatedCost)
     {
-        var existingCost = costs.FirstOrDefault(e => e.CostLogId == updatedCost.CostLogId); // Assuming Cost has an ID
+        var existingCost = costs.FirstOrDefault(e => e.CostLogId == updatedCost.CostLogId);
         if (existingCost != null)
         {
-            // Update properties of existingEmployee with updatedEmployee
             existingCost.Date = updatedCost.Date;
             existingCost.Description = updatedCost.Description;
             existingCost.Amount = updatedCost.Amount;
             existingCost.Category = updatedCost.Category;
         }
         HideEditForm();
-        // Optionally: Show a success notification
     }
 
     private void DeleteCost(CostLog costToDelete)
     {
         costs.Remove(costToDelete);
-        // Optionally: Show a success notification
     }
 }
