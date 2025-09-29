@@ -3,19 +3,46 @@ using System.Collections.Generic;
 using System.Linq;
 using SharedLibrary.Data.HumanResource;
 
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Configuration;
+
 namespace HumanResource.Pages
 {
     public partial class Employees
     {
+        [Inject]
+        HttpClient Http
+        {
+            get;
+            set;
+        }
+        [Inject]
+        IConfiguration Configuration
+        {
+            get;
+            set;
+        }
         private List<Employee> employees = new List<Employee>();
 
         private bool showCreateForm = false;
         private bool showEditForm = false;
         private Employee selectedEmployee;
 
-        protected override void OnInitialized()
+        protected override async Task OnInitializedAsync()
         {
-            employees = GetEmployees();
+            var humanresourceBaseUrl = Configuration["CentralServerBaseUrl"];
+            humanresourceBaseUrl = "https://localhost:27078";
+            try
+            {
+                employees = await Http.GetFromJsonAsync<List<Employee>>($"{humanresourceBaseUrl}/api/HumanResource/GetEmployee");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching Departments: {ex.Message}");
+            }
         }
         private List<Employee> GetEmployees()
         {

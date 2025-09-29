@@ -3,23 +3,47 @@ using System.Collections.Generic;
 using System.Linq;
 using SharedLibrary.Data.HumanResource;
 
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Configuration;
+
 namespace HumanResource.Pages
 {
     public partial class Disciplinary
     {
+        [Inject]
+        HttpClient Http
+        {
+            get;
+            set;
+        }
+        [Inject]
+        IConfiguration Configuration
+        {
+            get;
+            set;
+        }
         private List<DisciplinaryCase> cases = new List<DisciplinaryCase>();
 
         private bool showCreateForm = false;
         private bool showEditForm = false;
         private DisciplinaryCase selectedCase;
 
-        protected override void OnInitialized()
+        
+        protected override async Task OnInitializedAsync()
         {
-            cases = GetCases();
-        }
-        private List<DisciplinaryCase> GetCases()
-        {
-            throw new NotImplementedException();
+            var humanresourceBaseUrl = Configuration["CentralServerBaseUrl"];
+            humanresourceBaseUrl = "https://localhost:27078";
+            try
+            {
+                cases = await Http.GetFromJsonAsync<List<DisciplinaryCase>>($"{humanresourceBaseUrl}/api/HumanResource/GetDisciplinaryCase");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching Departments: {ex.Message}");
+            }
         }
 
         private void ShowCreateForm()

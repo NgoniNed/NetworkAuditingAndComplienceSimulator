@@ -1,25 +1,47 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Configuration;
 using SharedLibrary.Data.HumanResource;
 
 namespace HumanResource.Pages
 {
     public partial class Pensioners
     {
+        [Inject]
+        HttpClient Http
+        {
+            get;
+            set;
+        }
+        [Inject]
+        IConfiguration Configuration
+        {
+            get;
+            set;
+        }
         private List<Pensioner> pensioners = new List<Pensioner>();
 
         private bool showCreateForm = false;
         private bool showEditForm = false;
         private Pensioner selectedPensioner;
 
-        protected override void OnInitialized()
+        protected override async Task OnInitializedAsync()
         {
-            pensioners = GetPensioners();
-        }
-        private List<Pensioner> GetPensioners()
-        {
-            throw new NotImplementedException();
+            var humanresourceBaseUrl = Configuration["CentralServerBaseUrl"];
+            humanresourceBaseUrl = "https://localhost:27078";
+            try
+            {
+                pensioners = await Http.GetFromJsonAsync<List<Pensioner>>($"{humanresourceBaseUrl}/api/HumanResource/GetPensioner");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching Pensioners: {ex.Message}");
+            }
         }
 
         private void ShowCreateForm()
