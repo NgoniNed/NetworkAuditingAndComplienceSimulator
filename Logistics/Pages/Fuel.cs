@@ -3,23 +3,48 @@ using System.Collections.Generic;
 using System.Linq;
 using SharedLibrary.Data.Logistics;
 
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Configuration;
+
 namespace Logistics.Pages
 {
     public partial class Fuel
     {
+        [Inject]
+        HttpClient Http
+        {
+            get;
+            set;
+        }
+        [Inject]
+        IConfiguration Configuration
+        {
+            get;
+            set;
+        }
         private List<FuelLog> fuelLogs = new List<FuelLog>();
 
         private bool showCreateForm = false;
         private bool showEditForm = false;
         private FuelLog selectedFuelLog;
 
-        protected override void OnInitialized()
+        
+
+        protected override async Task OnInitializedAsync()
         {
-            fuelLogs = GetFuelLogs();
-        }
-        private List<FuelLog> GetFuelLogs()
-        {
-            throw new NotImplementedException();
+            var logisticssourceBaseUrl = Configuration["CentralServerBaseUrl"];
+            logisticssourceBaseUrl = "https://localhost:57238";
+            try
+            {
+                fuelLogs = await Http.GetFromJsonAsync<List<FuelLog>>($"{logisticssourceBaseUrl}/api/Logistics/GetFuelLog");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching Costs Logs: {ex.Message}");
+            }
         }
 
         private void ShowCreateForm()

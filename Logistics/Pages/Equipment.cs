@@ -2,23 +2,47 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Configuration;
 namespace Logistics.Pages
 {
     public partial class Equipment
     {
+        [Inject]
+        HttpClient Http
+        {
+            get;
+            set;
+        }
+        [Inject]
+        IConfiguration Configuration
+        {
+            get;
+            set;
+        }
         private List<SharedLibrary.Data.Logistics.Equipment> equipments = new List<SharedLibrary.Data.Logistics.Equipment>();
 
         private bool showCreateForm = false;
         private bool showEditForm = false;
         private SharedLibrary.Data.Logistics.Equipment selectedEquipment;
 
-        protected override void OnInitialized()
+        
+
+        protected override async Task OnInitializedAsync()
         {
-            equipments = GetEquipment();
-        }
-        private List<SharedLibrary.Data.Logistics.Equipment> GetEquipment()
-        {
-            throw new NotImplementedException(); 
+            var logisticssourceBaseUrl = Configuration["CentralServerBaseUrl"];
+            logisticssourceBaseUrl = "https://localhost:57238";
+            try
+            {
+                equipments = await Http.GetFromJsonAsync<List<SharedLibrary.Data.Logistics.Equipment>>($"{logisticssourceBaseUrl}/api/Logistics/GetEquipment");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching Costs Logs: {ex.Message}");
+            }
         }
 
         private void ShowCreateForm()

@@ -12,9 +12,17 @@ namespace Logistics.Pages
     public partial class Shipments
     {
         [Inject]
-        public HttpClient Http { get; set; }
+        HttpClient Http
+        {
+            get;
+            set;
+        }
         [Inject]
-        public IConfiguration Configuration { get; set; }
+        IConfiguration Configuration
+        {
+            get;
+            set;
+        }
 
         private List<Shipment> shipments = new List<Shipment>();
         private bool showCreateForm = false;
@@ -23,20 +31,16 @@ namespace Logistics.Pages
 
         protected override async Task OnInitializedAsync()
         {
-            string baseUrl = Configuration["CentralServerBaseUrl"];
-            // If running locally, adjust the URL if needed
-            var apiUrl = $"{baseUrl}/api/Logistics/GetShipment";
+            var logisticssourceBaseUrl = Configuration["CentralServerBaseUrl"];
+            logisticssourceBaseUrl = "https://localhost:57238";
             try
             {
-                shipments = await Http.GetFromJsonAsync<List<Shipment>>(apiUrl);
+                shipments = await Http.GetFromJsonAsync<List<Shipment>>($"{logisticssourceBaseUrl}/api/Logistics/GetShipment");
             }
             catch (Exception ex)
             {
-                // fallback or show error
-                shipments = new List<Shipment>();
-                Console.WriteLine($"Error fetching shipments: {ex.Message}");
+                Console.WriteLine($"Error fetching Shipments Logs: {ex.Message}");
             }
         }
-
     }
 }

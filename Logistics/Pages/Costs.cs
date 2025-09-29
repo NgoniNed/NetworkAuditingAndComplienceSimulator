@@ -3,23 +3,48 @@ using System.Collections.Generic;
 using System.Linq;
 using SharedLibrary.Data.Logistics;
 
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Configuration;
+
 namespace Logistics.Pages
 {
     public partial class Costs
     {
+        [Inject]
+        HttpClient Http
+        {
+            get;
+            set;
+        }
+        [Inject]
+        IConfiguration Configuration
+        {
+            get;
+            set;
+        }
+
         private List<CostLog> costs = new List<CostLog>();
 
         private bool showCreateForm = false;
         private bool showEditForm = false;
         private CostLog selectedCost;
 
-        protected override void OnInitialized()
+        
+        protected override async Task OnInitializedAsync()
         {
-            costs = GetCosts();
-        }
-        private List<CostLog> GetCosts()
-        {
-            throw new NotImplementedException();
+            var logisticssourceBaseUrl = Configuration["CentralServerBaseUrl"];
+            logisticssourceBaseUrl = "https://localhost:57238";
+            try
+            {
+                costs = await Http.GetFromJsonAsync<List<CostLog>>($"{logisticssourceBaseUrl}/api/Logistics/GetCostLog");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching Costs Logs: {ex.Message}");
+            }
         }
 
         private void ShowCreateForm()
