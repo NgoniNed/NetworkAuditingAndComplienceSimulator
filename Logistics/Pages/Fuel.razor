@@ -22,19 +22,22 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var fuelLog in fuelLogs)
+            @if (fuelLogs != null)
             {
-                <tr>
-                    <td>@fuelLog.Date.ToShortDateString()</td>
-                    <td>@fuelLog.EquipmentId</td>
-                    <td>@fuelLog.LitersFilled</td>
-                    <td>@fuelLog.Cost</td>
-                    <td>@fuelLog.OdometerReading</td>
-                    <td>
-                        <button class="btn btn-sm btn-info" @onclick="() => ShowEditForm(fuelLog)">Edit</button>
-                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteFuel(fuelLog)">Delete</button>
-                    </td>
-                </tr>
+                @foreach (var fuelLog in fuelLogs)
+                {
+                    <tr>
+                        <td>@fuelLog.Date.ToShortDateString()</td>
+                        <td>@fuelLog.EquipmentId</td>
+                        <td>@fuelLog.LitersFilled</td>
+                        <td>@fuelLog.Cost</td>
+                        <td>@fuelLog.OdometerReading</td>
+                        <td>
+                            <button class="btn btn-sm btn-info" @onclick="() => ShowEditForm(fuelLog)">Edit</button>
+                            <button class="btn btn-sm btn-danger" @onclick="() => DeleteFuel(fuelLog)">Delete</button>
+                        </td>
+                    </tr>
+                }
             }
         </tbody>
     </table>

@@ -21,18 +21,21 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var cost in costs)
+            @if (costs != null)
             {
-                <tr>
-                    <td>@cost.Date.ToShortDateString()</td>
-                    <td>@cost.Description</td>
-                    <td>@cost.Amount</td>
-                    <td>@cost.Category</td>
-                    <td>
-                        <button class="btn btn-sm btn-info" @onclick="() => ShowEditForm(cost)">Edit</button>
-                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteCost(cost)">Delete</button>
-                    </td>
-                </tr>
+                @foreach (var cost in costs)
+                {
+                    <tr>
+                        <td>@cost.Date.ToShortDateString()</td>
+                        <td>@cost.Description</td>
+                        <td>@cost.Amount</td>
+                        <td>@cost.Category</td>
+                        <td>
+                            <button class="btn btn-sm btn-info" @onclick="() => ShowEditForm(cost)">Edit</button>
+                            <button class="btn btn-sm btn-danger" @onclick="() => DeleteCost(cost)">Delete</button>
+                        </td>
+                    </tr>
+                }
             }
         </tbody>
     </table>

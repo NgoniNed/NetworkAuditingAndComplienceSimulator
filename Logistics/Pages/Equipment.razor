@@ -22,19 +22,22 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var equipment in equipments)
+            @if (equipments != null)
             {
-                <tr>
-                    <td>@equipment.Name</td>
-                    <td>@equipment.Type</td>
-                    <td>@equipment.Make</td>
-                    <td>@equipment.Model</td>
-                    <td>@equipment.NextServiceDate.ToShortDateString()</td>
-                    <td>
-                        <button class="btn btn-sm btn-info" @onclick="() => ShowEditForm(equipment)">Edit</button>
-                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteEquipment(equipment)">Delete</button>
-                    </td>
-                </tr>
+                @foreach (var equipment in equipments)
+                {
+                    <tr>
+                        <td>@equipment.Name</td>
+                        <td>@equipment.Type</td>
+                        <td>@equipment.Make</td>
+                        <td>@equipment.Model</td>
+                        <td>@equipment.NextServiceDate.ToShortDateString()</td>
+                        <td>
+                            <button class="btn btn-sm btn-info" @onclick="() => ShowEditForm(equipment)">Edit</button>
+                            <button class="btn btn-sm btn-danger" @onclick="() => DeleteEquipment(equipment)">Delete</button>
+                        </td>
+                    </tr>
+                }
             }
         </tbody>
     </table>

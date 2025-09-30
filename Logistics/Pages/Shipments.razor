@@ -7,7 +7,7 @@
 
     @if (showCreateForm)
     {
-        <ShipmentForm OnShipmentCreated="AddShipment" OnCancel="HideCreateForm" />
+        <Logistics.Components.ShipmentForm OnShipmentCreated="AddShipment" OnCancel="HideCreateForm" />
     }
 
     <table class="table table-striped">
@@ -22,19 +22,22 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var shipment in shipments)
+            @if (shipments != null)
             {
-                <tr>
-                    <td>@shipment.ShipmentNumber</td>
-                    <td>@shipment.Origin</td>
-                    <td>@shipment.Destination</td>
-                    <td>@shipment.ExpectedDeliveryDate.ToShortDateString()</td>
-                    <td>@shipment.CurrentStatus</td>
-                    <td>
-                        <button class="btn btn-sm btn-info" @onclick="() => ShowEditForm(shipment)">Edit</button>
-                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteShipment(shipment)">Delete</button>
-                    </td>
-                </tr>
+                @foreach (var shipment in shipments)
+                {
+                    <tr>
+                        <td>@shipment.ShipmentNumber</td>
+                        <td>@shipment.Origin</td>
+                        <td>@shipment.Destination</td>
+                        <td>@shipment.ExpectedDeliveryDate.ToShortDateString()</td>
+                        <td>@shipment.CurrentStatus</td>
+                        <td>
+                            <button class="btn btn-sm btn-info" @onclick="() => ShowEditForm(shipment)">Edit</button>
+                            <button class="btn btn-sm btn-danger" @onclick="() => DeleteShipment(shipment)">Delete</button>
+                        </td>
+                    </tr>
+                }
             }
         </tbody>
     </table>
@@ -51,7 +54,7 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        <ShipmentForm Shipment="selectedShipment" OnShipmentUpdated="UpdateShipment" OnCancel="HideEditForm" />
+                        <Logistics.Components.ShipmentForm Shipment="selectedShipment" OnShipmentUpdated="UpdateShipment" OnCancel="HideEditForm" />
                     </div>
                 </div>
             </div>
