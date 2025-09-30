@@ -38,7 +38,7 @@ namespace HumanResource.Pages
             humanresourceBaseUrl = "https://localhost:27078";
             try
             {
-                cases = await Http.GetFromJsonAsync<List<DisciplinaryCase>>($"{humanresourceBaseUrl}/api/HumanResource/GetDisciplinaryCase");
+                cases = await Http.GetFromJsonAsync<List<DisciplinaryCase>>($"{humanresourceBaseUrl}/api/HumanResources/GetDisciplinaryCase");
             }
             catch (Exception ex)
             {

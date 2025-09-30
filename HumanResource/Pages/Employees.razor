@@ -21,18 +21,21 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var employee in employees)
+            @if (employees != null)
             {
-                <tr>
-                    <td>@employee.Name</td>
-                    <td>@employee.Department</td>
-                    <td>@employee.Position</td>
-                    <td>@employee.Email</td>
-                    <td>
-                        <button class="btn btn-sm btn-info" @onclick="() => ShowEditForm(employee)">Edit</button>
-                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteEmployee(employee)">Delete</button>
-                    </td>
-                </tr>
+                @foreach (var employee in employees)
+                {
+                    <tr>
+                        <td>@employee.Name</td>
+                        <td>@employee.Department</td>
+                        <td>@employee.Position</td>
+                        <td>@employee.Email</td>
+                        <td>
+                            <button class="btn btn-sm btn-info" @onclick="() => ShowEditForm(employee)">Edit</button>
+                            <button class="btn btn-sm btn-danger" @onclick="() => DeleteEmployee(employee)">Delete</button>
+                        </td>
+                    </tr>
+                }
             }
         </tbody>
     </table>

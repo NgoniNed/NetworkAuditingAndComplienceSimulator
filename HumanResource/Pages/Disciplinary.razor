@@ -20,17 +20,20 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var caseItem in cases)
+            @if (cases != null)
             {
-                <tr>
-                    <td>@caseItem.EmployeeName</td>
-                    <td>@caseItem.Date.ToShortDateString()</td>
-                    <td>@caseItem.Reason</td>
-                    <td>
-                        <button class="btn btn-sm btn-info" @onclick="() => ShowEditForm(caseItem)">Edit</button>
-                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteCase(caseItem)">Delete</button>
-                    </td>
-                </tr>
+                @foreach (var caseItem in cases)
+                {
+                    <tr>
+                        <td>@caseItem.EmployeeName</td>
+                        <td>@caseItem.Date.ToShortDateString()</td>
+                        <td>@caseItem.Reason</td>
+                        <td>
+                            <button class="btn btn-sm btn-info" @onclick="() => ShowEditForm(caseItem)">Edit</button>
+                            <button class="btn btn-sm btn-danger" @onclick="() => DeleteCase(caseItem)">Delete</button>
+                        </td>
+                    </tr>
+                }
             }
         </tbody>
     </table>

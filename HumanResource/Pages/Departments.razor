@@ -19,16 +19,19 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var department in departments)
+            @if (departments != null)
             {
-                <tr>
-                    <td>@department.Name</td>
-                    <td>@department.Description</td>
-                    <td>
-                        <button class="btn btn-sm btn-info" @onclick="() => ShowEditForm(department)">Edit</button>
-                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteDepartment(department)">Delete</button>
-                    </td>
-                </tr>
+                @foreach (var department in departments)
+                {
+                    <tr>
+                        <td>@department.Name</td>
+                        <td>@department.Description</td>
+                        <td>
+                            <button class="btn btn-sm btn-info" @onclick="() => ShowEditForm(department)">Edit</button>
+                            <button class="btn btn-sm btn-danger" @onclick="() => DeleteDepartment(department)">Delete</button>
+                        </td>
+                    </tr>
+                }
             }
         </tbody>
     </table>

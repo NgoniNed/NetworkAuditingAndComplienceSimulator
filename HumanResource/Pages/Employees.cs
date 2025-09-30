@@ -37,7 +37,7 @@ namespace HumanResource.Pages
             humanresourceBaseUrl = "https://localhost:27078";
             try
             {
-                employees = await Http.GetFromJsonAsync<List<Employee>>($"{humanresourceBaseUrl}/api/HumanResource/GetEmployee");
+                employees = await Http.GetFromJsonAsync<List<Employee>>($"{humanresourceBaseUrl}/api/HumanResources/GetEmployee");
             }
             catch (Exception ex)
             {
