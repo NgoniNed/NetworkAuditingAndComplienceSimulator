@@ -67,9 +67,30 @@ namespace Logistics.Pages
             selectedEquipment = null;
         }
 
-        private void AddEquipment(SharedLibrary.Data.Logistics.Equipment newEquipment)
+        private async void AddEquipment(SharedLibrary.Data.Logistics.Equipment newEquipment)
         {
             equipments.Add(newEquipment);
+            var logisticssourceBaseUrl = Configuration["CentralServerBaseUrl"];
+            logisticssourceBaseUrl = "https://localhost:57238";
+            Console.WriteLine($"Pushing to Logistics API");
+            try
+            {
+
+                Console.WriteLine($"Trying to Push to Logistics API");
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.PostAsJsonAsync<SharedLibrary.Data.Logistics.Equipment>($"{logisticssourceBaseUrl}/api/Logistics/PushEquipment", newEquipment);
+
+                    Console.WriteLine(response.ReasonPhrase);
+                    Console.WriteLine(response.StatusCode);
+                    Console.WriteLine(response.RequestMessage);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error posting {newEquipment.GetType().Name}: {ex.Message}");
+            }
             HideCreateForm();
         }
 

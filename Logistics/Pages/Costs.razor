@@ -7,7 +7,8 @@
 
     @if (showCreateForm)
     {
-        <CostForm OnCostCreated="AddCost" OnCancel="HideCreateForm" />
+        
+        <Logistics.Components.CostForm OnCostCreated="AddCostAsync" OnCancel="HideCreateForm" />
     }
 
     <table class="table table-striped">
@@ -52,7 +53,7 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        <CostForm Cost="selectedCost" OnCostUpdated="UpdateCost" OnCancel="HideEditForm" />
+                        <Logistics.Components.CostForm Cost="selectedCost" OnCostUpdated="UpdateCost" OnCancel="HideEditForm" />
                     </div>
                 </div>
             </div>

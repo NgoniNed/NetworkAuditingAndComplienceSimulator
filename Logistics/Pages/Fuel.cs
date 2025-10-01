@@ -69,9 +69,30 @@ namespace Logistics.Pages
             selectedFuelLog = null;
         }
 
-        private void AddFuel(FuelLog newFuel)
+        private async void AddFuel(FuelLog newFuel)
         {
             fuelLogs.Add(newFuel);
+            var logisticssourceBaseUrl = Configuration["CentralServerBaseUrl"];
+            logisticssourceBaseUrl = "https://localhost:57238";
+            Console.WriteLine($"Pushing to Logistics API");
+            try
+            {
+
+                Console.WriteLine($"Trying to Push to Logistics API");
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.PostAsJsonAsync<FuelLog>($"{logisticssourceBaseUrl}/api/Logistics/PushFuelLog", newFuel);
+
+                    Console.WriteLine(response.ReasonPhrase);
+                    Console.WriteLine(response.StatusCode);
+                    Console.WriteLine(response.RequestMessage);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error posting {newFuel.GetType().Name}: {ex.Message}");
+            }
             HideCreateForm();
         }
 

@@ -8,6 +8,8 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Configuration;
+using System.Text;
+using System.Text.Json;
 
 namespace Logistics.Pages
 {
@@ -69,9 +71,31 @@ namespace Logistics.Pages
             selectedCost = null;
         }
 
-        private void AddCost(CostLog newCost)
+        private async Task AddCostAsync(CostLog newCost)
         {
             costs.Add(newCost);
+            //API push request
+            var logisticssourceBaseUrl = Configuration["CentralServerBaseUrl"];
+            logisticssourceBaseUrl = "https://localhost:57238";
+            Console.WriteLine($"Pushing to Logistics API");
+            try
+            {
+                
+                Console.WriteLine($"Trying to Push to Logistics API");
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.PostAsJsonAsync<CostLog>($"{logisticssourceBaseUrl}/api/Logistics/PushCostLog", newCost);
+
+                    Console.WriteLine(response.ReasonPhrase);
+                    Console.WriteLine(response.StatusCode);
+                    Console.WriteLine(response.RequestMessage);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error posting {newCost.GetType().Name}: {ex.Message}");
+            }
             HideCreateForm();
         }
 

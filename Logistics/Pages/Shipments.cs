@@ -66,9 +66,30 @@ namespace Logistics.Pages
             selectedShipment = null;
         }
 
-        private void AddShipment(Shipment newShipment)
+        private async void AddShipment(Shipment newShipment)
         {
             shipments.Add(newShipment);
+            var logisticssourceBaseUrl = Configuration["CentralServerBaseUrl"];
+            logisticssourceBaseUrl = "https://localhost:57238";
+            Console.WriteLine($"Pushing to Logistics API");
+            try
+            {
+
+                Console.WriteLine($"Trying to Push to Logistics API");
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.PostAsJsonAsync<Shipment>($"{logisticssourceBaseUrl}/api/Logistics/PushShipment", newShipment);
+
+                    Console.WriteLine(response.ReasonPhrase);
+                    Console.WriteLine(response.StatusCode);
+                    Console.WriteLine(response.RequestMessage);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error posting {newShipment.GetType().Name}: {ex.Message}");
+            }
             HideCreateForm();
         }
 
