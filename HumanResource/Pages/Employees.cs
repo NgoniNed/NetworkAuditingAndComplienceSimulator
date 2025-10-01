@@ -71,9 +71,30 @@ namespace HumanResource.Pages
             selectedEmployee = null;
         }
 
-        private void AddEmployee(Employee newEmployee)
+        private async void AddEmployee(Employee newEmployee)
         {
             employees.Add(newEmployee);
+            var humanresourcesourceBaseUrl = Configuration["CentralServerBaseUrl"];
+            humanresourcesourceBaseUrl = "https://localhost:57238";
+            Console.WriteLine($"Pushing to Human Resource API");
+            try
+            {
+
+                Console.WriteLine($"Trying to Push to Human Resource API");
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.PostAsJsonAsync<Employee>($"{humanresourcesourceBaseUrl}/api/HumanResources/PushEmployee", newEmployee);
+
+                    Console.WriteLine(response.ReasonPhrase);
+                    Console.WriteLine(response.StatusCode);
+                    Console.WriteLine(response.RequestMessage);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error posting {newEmployee.GetType().Name}: {ex.Message}");
+            }
             HideCreateForm();
         }
 

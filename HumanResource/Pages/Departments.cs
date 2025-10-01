@@ -66,9 +66,30 @@ namespace HumanResource.Pages
             selectedDepartment = null;
         }
 
-        private void AddDepartment(Department newDepartment)
+        private async void AddDepartment(Department newDepartment)
         {
             departments.Add(newDepartment);
+            var humanresourcesourceBaseUrl = Configuration["CentralServerBaseUrl"];
+            humanresourcesourceBaseUrl = "https://localhost:57238";
+            Console.WriteLine($"Pushing to Human Resource API");
+            try
+            {
+
+                Console.WriteLine($"Trying to Push to Human Resource API");
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.PostAsJsonAsync<Department>($"{humanresourcesourceBaseUrl}/api/HumanResources/PushDepartment", newDepartment);
+
+                    Console.WriteLine(response.ReasonPhrase);
+                    Console.WriteLine(response.StatusCode);
+                    Console.WriteLine(response.RequestMessage);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error posting {newDepartment.GetType().Name}: {ex.Message}");
+            }
             HideCreateForm();
         }
 

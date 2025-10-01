@@ -66,9 +66,30 @@ namespace HumanResource.Pages
             selectedIntern = null;
         }
 
-        private void AddIntern(Intern newIntern)
+        private async void AddIntern(Intern newIntern)
         {
             interns.Add(newIntern);
+            var humanresourcesourceBaseUrl = Configuration["CentralServerBaseUrl"];
+            humanresourcesourceBaseUrl = "https://localhost:57238";
+            Console.WriteLine($"Pushing to Human Resource API");
+            try
+            {
+
+                Console.WriteLine($"Trying to Push to Human Resource API");
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.PostAsJsonAsync<Intern>($"{humanresourcesourceBaseUrl}/api/HumanResources/PushIntern", newIntern);
+
+                    Console.WriteLine(response.ReasonPhrase);
+                    Console.WriteLine(response.StatusCode);
+                    Console.WriteLine(response.RequestMessage);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error posting {newIntern.GetType().Name}: {ex.Message}");
+            }
             HideCreateForm();
         }
 

@@ -7,7 +7,7 @@
 
     @if (showCreateForm)
     {
-        <CaseForm OnCaseCreated="AddCase" OnCancel="HideCreateForm" />
+        <HumanResource.Models.CaseForm OnCaseCreated="AddCase" OnCancel="HideCreateForm" />
     }
 
     <table class="table table-striped">
@@ -50,7 +50,7 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        <CaseForm CaseItem="selectedCase" OnCaseUpdated="UpdateCase" OnCancel="HideEditForm" />
+                        <HumanResource.Models.CaseForm CaseItem="selectedCase" OnCaseUpdated="UpdateCase" OnCancel="HideEditForm" />
                     </div>
                 </div>
             </div>

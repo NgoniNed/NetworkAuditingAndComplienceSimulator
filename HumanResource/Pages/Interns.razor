@@ -7,7 +7,8 @@
 
     @if (showCreateForm)
     {
-        <InternForm OnInternCreated="AddIntern" OnCancel="HideCreateForm" />
+        
+        <HumanResource.Models.InternForm OnInternCreated="AddIntern" OnCancel="HideCreateForm" />
     }
 
     <table class="table table-striped">
@@ -52,7 +53,7 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        <InternForm Intern="selectedIntern" OnInternUpdated="UpdateIntern" OnCancel="HideEditForm" />
+                        <HumanResource.Models.InternForm Intern="selectedIntern" OnInternUpdated="UpdateIntern" OnCancel="HideEditForm" />
                     </div>
                 </div>
             </div>

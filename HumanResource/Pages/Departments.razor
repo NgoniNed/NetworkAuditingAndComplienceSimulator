@@ -7,7 +7,7 @@
 
     @if (showCreateForm)
     {
-        <DepartmentForm OnDepartmentCreated="AddDepartment" OnCancel="HideCreateForm" />
+        <HumanResource.Models.DepartmentForm OnDepartmentCreated="AddDepartment" OnCancel="HideCreateForm" />
     }
 
     <table class="table table-striped">
@@ -48,7 +48,7 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        <DepartmentForm Department="selectedDepartment" OnDepartmentUpdated="UpdateDepartment" OnCancel="HideEditForm" />
+                        <HumanResource.Models.DepartmentForm Department="selectedDepartment" OnDepartmentUpdated="UpdateDepartment" OnCancel="HideEditForm" />
                     </div>
                 </div>
             </div>

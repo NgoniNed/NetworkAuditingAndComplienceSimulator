@@ -66,9 +66,30 @@ namespace HumanResource.Pages
             selectedPensioner = null;
         }
 
-        private void AddPensioner(Pensioner newPensioner)
+        private async void AddPensioner(Pensioner newPensioner)
         {
             pensioners.Add(newPensioner);
+            var humanresourcesourceBaseUrl = Configuration["CentralServerBaseUrl"];
+            humanresourcesourceBaseUrl = "https://localhost:57238";
+            Console.WriteLine($"Pushing to Human Resource API");
+            try
+            {
+
+                Console.WriteLine($"Trying to Push to Human Resource API");
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.PostAsJsonAsync<Pensioner>($"{humanresourcesourceBaseUrl}/api/HumanResources/PushPensioner", newPensioner);
+
+                    Console.WriteLine(response.ReasonPhrase);
+                    Console.WriteLine(response.StatusCode);
+                    Console.WriteLine(response.RequestMessage);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error posting {newPensioner.GetType().Name}: {ex.Message}");
+            }
             HideCreateForm();
         }
 

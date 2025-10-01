@@ -7,7 +7,7 @@
 
     @if (showCreateForm)
     {
-        <EmployeeForm OnEmployeeCreated="AddEmployee" OnCancel="HideCreateForm" />
+        <HumanResource.Models.EmployeeForm OnEmployeeCreated="AddEmployee" OnCancel="HideCreateForm" />
     }
 
     <table class="table table-striped">
@@ -52,7 +52,7 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        <EmployeeForm Employee="selectedEmployee" OnEmployeeUpdated="UpdateEmployee" OnCancel="HideEditForm" />
+                        <HumanResource.Models.EmployeeForm Employee="selectedEmployee" OnEmployeeUpdated="UpdateEmployee" OnCancel="HideEditForm" />
                     </div>
                 </div>
             </div>
