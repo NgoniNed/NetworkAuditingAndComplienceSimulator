@@ -1,24 +1,77 @@
 ﻿@page "/balancesheet"
 
-<h3>Balance Sheet</h3>
+<h3>Balance Sheet Manager</h3>
 
-@if (balancesheet == null || !balancesheet.Any())
+<button class="btn btn-primary mb-3" @onclick="ShowCreateForm">Add Balance Sheet</button>
+
+@if (showCreateForm)
 {
-    <p>@(balancesheet == null ? "Loading..." : "No balance sheet data available.")</p>
+    <EditForm Model="@newSheet" OnValidSubmit="@AddBalanceSheet">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <div class="form-group">
+            <label>Assets</label>
+            <InputNumber class="form-control" @bind-Value="newSheet.Assets" />
+        </div>
+        <div class="form-group">
+            <label>Liabilities</label>
+            <InputNumber class="form-control" @bind-Value="newSheet.Liabilities" />
+        </div>
+        <button class="btn btn-success mt-2" type="submit">Save</button>
+        <button class="btn btn-secondary mt-2" @onclick="HideCreateForm" type="button">Cancel</button>
+    </EditForm>
 }
-else
-{
-    <table class="table">
-        <thead>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Assets</th>
+            <th>Liabilities</th>
+            <th>Net Worth</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var sheet in balancesheet)
+        {
             <tr>
-                <th>Category</th>
-                <th>Amount</th>
+                <td>@sheet.Id</td>
+                <td>@sheet.Assets</td>
+                <td>@sheet.Liabilities</td>
+                <td>@(sheet.Assets - sheet.Liabilities)</td>
+                <td>
+                    <button class="btn btn-info btn-sm" @onclick="() => ShowEditForm(sheet)">Edit</button>
+                    <button class="btn btn-danger btn-sm" @onclick="() => ConfirmDelete(sheet)">Delete</button>
+                </td>
             </tr>
-        </thead>
-        <tbody>
-            <tr><td>Assets</td><td>@balancesheet.First().Assets</td></tr>
-            <tr><td>Liabilities</td><td>@balancesheet.First().Liabilities</td></tr>
-            <tr><td>Equity</td><td>@balancesheet.First().Equity</td></tr>
-        </tbody>
-    </table>
+        }
+    </tbody>
+</table>
+
+@if (showEditForm)
+{
+    <EditForm Model="@editingSheet" OnValidSubmit="@UpdateBalanceSheet">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <button class="btn btn-success" type="submit">Update</button>
+        <button class="btn btn-secondary" @onclick="HideEditForm" type="button">Cancel</button>
+    </EditForm>
+}
+
+@if (showDeleteConfirm)
+{
+    <div class="modal-backdrop fade show"></div>
+    <div class="modal show" style="display:block;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header"><strong>Confirm Delete</strong></div>
+                <div class="modal-body">Are you sure you want to delete this balance sheet?</div>
+                <div class="modal-footer">
+                    <button class="btn btn-danger" @onclick="DeleteBalanceSheetConfirmed">Delete</button>
+                    <button class="btn btn-secondary" @onclick="HideDeleteConfirm">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
 }

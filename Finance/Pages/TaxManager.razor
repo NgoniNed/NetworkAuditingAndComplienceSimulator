@@ -1,28 +1,91 @@
 ﻿@page "/taxmanager"
- 
-<h3>Tax Management</h3>
 
-<table class="table">
+<h3>Tax Item Manager</h3>
+
+<button class="btn btn-primary mb-3" @onclick="ShowCreateForm">Add Tax Item</button>
+
+@if (showCreateForm)
+{
+    <EditForm Model="@newTaxItem" OnValidSubmit="@AddTaxItem">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <div class="form-group">
+            <label>Name</label>
+            <InputText class="form-control" @bind-Value="newTaxItem.Name" />
+        </div>
+        <div class="form-group">
+            <label>Projected Tax</label>
+            <InputNumber class="form-control" @bind-Value="newTaxItem.ProjectedTax" />
+        </div>
+        <div class="form-group">
+            <label>Tax Return</label>
+            <InputNumber class="form-control" @bind-Value="newTaxItem.TaxReturn" />
+        </div>
+        <div class="form-group">
+            <label>Due Date</label>
+            <InputDate class="form-control" @bind-Value="newTaxItem.DueDate" />
+        </div>
+        <div class="form-check">
+            <InputCheckbox class="form-check-input" @bind-Value="newTaxItem.IsExempt" />
+            <label class="form-check-label">Is Exempt</label>
+        </div>
+        <button class="btn btn-success mt-2" type="submit">Save</button>
+        <button class="btn btn-secondary mt-2" @onclick="HideCreateForm" type="button">Cancel</button>
+    </EditForm>
+}
+
+<table class="table table-bordered">
     <thead>
         <tr>
-            <th>Item</th>
+            <th>Name</th>
             <th>Projected Tax</th>
-            <th>Due Date</th>
             <th>Tax Return</th>
-            <th>Tax Exempt</th>
+            <th>Due Date</th>
+            <th>Exempt</th>
+            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
-        @foreach (var taxItem in taxItems)
+        @foreach (var item in taxItems)
         {
             <tr>
-                <td>@taxItem.Name</td>
-                <td>@taxItem.ProjectedTax</td>
-                <td>@taxItem.DueDate.ToShortDateString()</td>
-                <td>@taxItem.TaxReturn</td>
-                <td>@(taxItem.IsExempt ? "Yes" : "No")</td>
+                <td>@item.Name</td>
+                <td>@item.ProjectedTax</td>
+                <td>@item.TaxReturn</td>
+                <td>@item.DueDate.ToShortDateString()</td>
+                <td>@(item.IsExempt ? "Yes" : "No")</td>
+                <td>
+                    <button class="btn btn-info btn-sm" @onclick="() => ShowEditForm(item)">Edit</button>
+                    <button class="btn btn-danger btn-sm" @onclick="() => ConfirmDelete(item)">Delete</button>
+                </td>
             </tr>
         }
     </tbody>
 </table>
 
+@if (showEditForm)
+{
+    <EditForm Model="@editingTaxItem" OnValidSubmit="@UpdateTaxItem">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <button class="btn btn-success" type="submit">Update</button>
+        <button class="btn btn-secondary" @onclick="HideEditForm" type="button">Cancel</button>
+    </EditForm>
+}
+
+@if (showDeleteConfirm)
+{
+    <div class="modal-backdrop fade show"></div>
+    <div class="modal show" style="display:block;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header"><strong>Confirm Delete</strong></div>
+                <div class="modal-body">Are you sure you want to delete this tax item?</div>
+                <div class="modal-footer">
+                    <button class="btn btn-danger" @onclick="DeleteTaxItemConfirmed">Delete</button>
+                    <button class="btn btn-secondary" @onclick="HideDeleteConfirm">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}

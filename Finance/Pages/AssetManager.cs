@@ -24,8 +24,14 @@ namespace Finance.Pages
             set;
         }
 
-        private List<Asset> assets;
+        private List<Asset> assets =new List<Asset>();
         private string financeBaseUrl;
+        private Asset newAsset = new();
+        private Asset editingAsset;
+        private Asset deletingAsset;
+        private bool showCreateForm = false;
+        private bool showEditForm = false;
+        private bool showDeleteConfirm = false;
 
         protected override async Task OnInitializedAsync()
         {
@@ -40,6 +46,69 @@ namespace Finance.Pages
             {
                 Console.WriteLine($"Error fetching assets: {ex.Message}");
             }
+        }
+        private void ShowCreateForm()
+        {
+            showCreateForm = true;
+            newAsset = new Asset();
+        }
+        private void HideCreateForm()
+        {
+            showCreateForm = false;
+        }
+
+        private void HideEditForm()
+        {
+            showEditForm = false;
+        }
+
+        private async Task AddAsset()
+        {
+            assets.Add(newAsset);
+            HideCreateForm();
+        }
+        private void ShowEditForm(Asset asset)
+        {
+            editingAsset = new Asset
+            {
+                Id = asset.Id,
+                Name = asset.Name,
+                AcquisitionDate = asset.AcquisitionDate,
+                Cost = asset.Cost,
+                RunningCosts = asset.RunningCosts,
+                MaintenanceCosts = asset.MaintenanceCosts,
+                Depreciation = asset.Depreciation,
+                ProfitLoss = asset.ProfitLoss
+                
+            };
+            showEditForm = true;
+        }
+
+        private async Task UpdateAsset()
+        {
+            var idx = assets.FindIndex(a => a.Id == editingAsset.Id);
+            if (idx >= 0)
+            {
+                assets[idx] = editingAsset;
+            }
+            HideEditForm();
+        }
+
+        private void ConfirmDelete(Asset asset)
+        {
+            deletingAsset = asset;
+            showDeleteConfirm = true;
+        }
+
+        private void HideDeleteConfirm()
+        {
+            showDeleteConfirm = false;
+        }
+
+        private async Task DeleteAssetConfirmed()
+        {
+            assets.Remove(deletingAsset);
+            showDeleteConfirm = false;
         }
     }
 }

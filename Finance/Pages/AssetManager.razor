@@ -2,7 +2,47 @@
 
 <h3>Asset Management</h3>
 
-<table class="table">
+<button class="btn btn-primary mb-3" @onclick="ShowCreateForm">Add Asset</button>
+
+@if (showCreateForm)
+{
+<EditForm Model="@newAsset" OnValidSubmit="@AddAsset">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="form-group">
+        <label>Name</label>
+        <InputText class="form-control" @bind-Value="newAsset.Name" />
+    </div>
+    <div class="form-group">
+        <label>Acquisition Date</label>
+        <InputDate class="form-control" @bind-Value="newAsset.AcquisitionDate" />
+    </div>
+    <div class="form-group">
+        <label>Cost</label>
+        <InputNumber class="form-control" @bind-Value="newAsset.Cost" />
+    </div>
+    <div class="form-group">
+        <label>Running Costs</label>
+        <InputNumber class="form-control" @bind-Value="newAsset.RunningCosts" />
+    </div>
+    <div class="form-group">
+        <label>Maintenance</label>
+        <InputNumber class="form-control" @bind-Value="newAsset.MaintenanceCosts" />
+    </div>
+    <div class="form-group">
+        <label>Depreciation</label>
+        <InputNumber class="form-control" @bind-Value="newAsset.Depreciation" />
+    </div>
+    <div class="form-group">
+        <label>PnL</label>
+        <InputNumber class="form-control" @bind-Value="newAsset.ProfitLoss" />
+    </div>
+    <button class="btn btn-success" type="submit">Save</button>
+    <button class="btn btn-secondary" @onclick="HideCreateForm" type="button">Cancel</button>
+</EditForm>
+}
+
+<table class="table table-striped">
     <thead>
         <tr>
             <th>Asset Name</th>
@@ -15,21 +55,51 @@
         </tr>
     </thead>
     <tbody>
-        @if (assets != null)
+        @foreach (var asset in assets)
         {
-            @foreach (var asset in assets)
-            {
-                <tr>
-                    <td>@asset.Name</td>
-                    <td>@asset.AcquisitionDate.ToShortDateString()</td>
-                    <td>@asset.Cost</td>
-                    <td>@asset.RunningCosts</td>
-                    <td>@asset.MaintenanceCosts</td>
-                    <td>@asset.Depreciation</td>
-                    <td>@asset.ProfitLoss</td>
-                </tr>
-            }
+            <tr>
+                <td>@asset.Name</td>
+                <td>@asset.AcquisitionDate.ToShortDateString()</td>
+                <td>@asset.Cost</td>
+
+                <td>@asset.RunningCosts</td>
+                <td>@asset.MaintenanceCosts</td>
+                <td>@asset.Depreciation</td>
+                <td>@asset.ProfitLoss</td>
+                <td>
+                    <button class="btn btn-info btn-sm" @onclick="() => ShowEditForm(asset)">Edit</button>
+                    <button class="btn btn-danger btn-sm" @onclick="() => ConfirmDelete(asset)">Delete</button>
+                </td>
+            </tr>
         }
     </tbody>
 </table>
+
+@if (showEditForm)
+{
+    <EditForm Model="@editingAsset" OnValidSubmit="@UpdateAsset">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <button class="btn btn-success" type="submit">Update</button>
+        <button class="btn btn-secondary" @onclick="HideEditForm" type="button">Cancel</button>
+    </EditForm>
+}
+
+@if (showDeleteConfirm)
+{
+    <div class="modal-backdrop fade show"></div>
+    <div class="modal show" style="display:block;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header"><strong>Confirm Delete</strong></div>
+                <div class="modal-body">Are you sure you want to delete @deletingAsset?.Name?</div>
+                <div class="modal-footer">
+                    <button class="btn btn-danger" @onclick="DeleteAssetConfirmed">Delete</button>
+                    <button class="btn btn-secondary" @onclick="HideDeleteConfirm">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 

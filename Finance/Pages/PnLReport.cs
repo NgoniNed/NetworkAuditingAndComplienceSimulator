@@ -26,6 +26,12 @@ namespace Finance.Pages
 
         private List<PnL> pnl = new List<PnL>();
         private string financeBaseUrl;
+        private PnL newPnL = new();
+        private PnL editingPnL;
+        private PnL deletingPnL;
+        private bool showCreateForm = false;
+        private bool showEditForm = false;
+        private bool showDeleteConfirm = false;
 
         protected override async Task OnInitializedAsync()
         {
@@ -42,5 +48,61 @@ namespace Finance.Pages
                 Console.WriteLine($"Error fetching Balance Sheets: {ex.Message}");
             }
         }
+
+        private void ShowCreateForm()
+        {
+            showCreateForm = true;
+            newPnL = new PnL();
+        }
+        private void HideCreateForm()
+        {
+            showCreateForm = false;
+        }
+
+        private void HideEditForm()
+        {
+            showEditForm = false;
+        }
+        private void HideDeleteConfirm()
+        {
+            showDeleteConfirm = false;
+        }
+
+        private async Task AddPnL()
+        {
+            pnl.Add(newPnL);
+            HideCreateForm();
+        }
+
+        private void ShowEditForm(PnL entry)
+        {
+            editingPnL = new PnL
+            {
+                Id = entry.Id,
+                Revenue = entry.Revenue,
+                Expenses = entry.Expenses
+            };
+            showEditForm = true;
+        }
+
+        private async Task UpdatePnL()
+        {
+            var idx = pnl.FindIndex(e => e.Id == editingPnL.Id);
+            if (idx >= 0) pnl[idx] = editingPnL;
+            HideEditForm();
+        }
+
+        private void ConfirmDelete(PnL entry)
+        {
+            deletingPnL = entry;
+            showDeleteConfirm = true;
+        }
+
+        private async Task DeletePnLConfirmed()
+        {
+            pnl.Remove(deletingPnL);
+            showDeleteConfirm = false;
+        }
+
     }
 }

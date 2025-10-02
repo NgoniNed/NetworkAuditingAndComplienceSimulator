@@ -26,6 +26,12 @@ namespace Finance.Pages
 
         private List<TaxItem> taxItems = new List<TaxItem>();
         private string financeBaseUrl;
+        private TaxItem newTaxItem = new();
+        private TaxItem editingTaxItem;
+        private TaxItem deletingTaxItem;
+        private bool showCreateForm = false;
+        private bool showEditForm = false;
+        private bool showDeleteConfirm = false;
 
         protected override async Task OnInitializedAsync()
         {
@@ -41,6 +47,63 @@ namespace Finance.Pages
             {
                 Console.WriteLine($"Error fetching Balance Sheets: {ex.Message}");
             }
+        }
+        private void ShowCreateForm()
+        {
+            showCreateForm = true;
+            newTaxItem = new TaxItem();
+        }
+        private void HideCreateForm()
+        {
+            showCreateForm = false;
+        }
+
+        private void HideEditForm()
+        {
+            showEditForm = false;
+        }
+
+        private async Task AddTaxItem()
+        {
+            taxItems.Add(newTaxItem);
+            HideCreateForm();
+        }
+        private void ShowEditForm(TaxItem taxItem)
+        {
+            editingTaxItem = new TaxItem
+            {
+                Id = taxItem.Id,
+                Name = taxItem.Name
+
+            };
+            showEditForm = true;
+        }
+
+        private async Task UpdateTaxItem()
+        {
+            var idx = taxItems.FindIndex(a => a.Id == editingTaxItem.Id);
+            if (idx >= 0)
+            {
+                taxItems[idx] = editingTaxItem;
+            }
+            HideEditForm();
+        }
+
+        private void ConfirmDelete(TaxItem taxItem)
+        {
+            deletingTaxItem = taxItem;
+            showDeleteConfirm = true;
+        }
+
+        private void HideDeleteConfirm()
+        {
+            showDeleteConfirm = false;
+        }
+
+        private async Task DeleteTaxItemConfirmed()
+        {
+            taxItems.Remove(deletingTaxItem);
+            showDeleteConfirm = false;
         }
     }
 }
