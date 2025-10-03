@@ -32,7 +32,7 @@
                         <td>@employee.Email</td>
                         <td>
                             <button class="btn btn-sm btn-info" @onclick="() => ShowEditForm(employee)">Edit</button>
-                            <button class="btn btn-sm btn-danger" @onclick="() => DeleteEmployee(employee)">Delete</button>
+                            <button class="btn btn-sm btn-danger" @onclick="() => DeleteEmployeeAsync(employee)">Delete</button>
                         </td>
                     </tr>
                 }
@@ -52,7 +52,7 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        <HumanResource.Models.EmployeeForm Employee="selectedEmployee" OnEmployeeUpdated="UpdateEmployee" OnCancel="HideEditForm" />
+                        <HumanResource.Models.EmployeeForm Employee="selectedEmployee" OnEmployeeUpdated="UpdateEmployeeAsync" OnCancel="HideEditForm" />
                     </div>
                 </div>
             </div>

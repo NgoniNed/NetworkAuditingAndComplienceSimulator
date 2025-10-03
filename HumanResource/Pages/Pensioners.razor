@@ -33,7 +33,7 @@
                         <td>@pensioner.Email</td>
                         <td>
                             <button class="btn btn-sm btn-info" @onclick="() => ShowEditForm(pensioner)">Edit</button>
-                            <button class="btn btn-sm btn-danger" @onclick="() => DeletePensioner(pensioner)">Delete</button>
+                            <button class="btn btn-sm btn-danger" @onclick="() => DeletePensionerAsync(pensioner)">Delete</button>
                         </td>
                     </tr>
                 }
@@ -53,7 +53,7 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        <HumanResource.Models.PensionerForm Pensioner="selectedPensioner" OnPensionerUpdated="UpdatePensioner" OnCancel="HideEditForm" />
+                        <HumanResource.Models.PensionerForm Pensioner="selectedPensioner" OnPensionerUpdated="UpdatePensionerAsync" OnCancel="HideEditForm" />
                     </div>
                 </div>
             </div>

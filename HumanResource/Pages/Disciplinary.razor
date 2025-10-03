@@ -30,7 +30,7 @@
                         <td>@caseItem.Reason</td>
                         <td>
                             <button class="btn btn-sm btn-info" @onclick="() => ShowEditForm(caseItem)">Edit</button>
-                            <button class="btn btn-sm btn-danger" @onclick="() => DeleteCase(caseItem)">Delete</button>
+                            <button class="btn btn-sm btn-danger" @onclick="() => DeleteCaseAsync(caseItem)">Delete</button>
                         </td>
                     </tr>
                 }
@@ -50,7 +50,7 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        <HumanResource.Models.CaseForm CaseItem="selectedCase" OnCaseUpdated="UpdateCase" OnCancel="HideEditForm" />
+                        <HumanResource.Models.CaseForm CaseItem="selectedCase" OnCaseUpdated="UpdateCaseAsync" OnCancel="HideEditForm" />
                     </div>
                 </div>
             </div>

@@ -95,7 +95,7 @@ namespace HumanResource.Pages
             HideCreateForm();
         }
 
-        private void UpdateCase(DisciplinaryCase updatedCase)
+        private async Task UpdateCaseAsync(DisciplinaryCase updatedCase)
         {
             var existingCase = cases.FirstOrDefault(e => e.CaseId == updatedCase.CaseId);
             if (existingCase != null)
@@ -104,11 +104,53 @@ namespace HumanResource.Pages
                 existingCase.Date = updatedCase.Date;
                 existingCase.Reason = updatedCase.Reason;
             }
+            var humanresourcesourceBaseUrl = Configuration["CentralServerBaseUrl"];
+            humanresourcesourceBaseUrl = "https://localhost:57238";
+            Console.WriteLine($"Pushing UpdateCase to Human Resource API");
+            try
+            {
+
+                Console.WriteLine($"Trying to Push UpdateCase to Human Resource API");
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.PostAsJsonAsync<DisciplinaryCase>($"{humanresourcesourceBaseUrl}/api/HumanResources/PushDisciplinaryCase", updatedCase);
+
+                    Console.WriteLine(response.ReasonPhrase);
+                    Console.WriteLine(response.StatusCode);
+                    Console.WriteLine(response.RequestMessage);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating {updatedCase.GetType().Name}: {ex.Message}");
+            }
             HideEditForm();
         }
 
-        private void DeleteCase(DisciplinaryCase caseToDelete)
+        private async Task DeleteCaseAsync(DisciplinaryCase caseToDelete)
         {
+            var humanresourcesourceBaseUrl = Configuration["CentralServerBaseUrl"];
+            humanresourcesourceBaseUrl = "https://localhost:57238";
+            Console.WriteLine($"Pushing DeleteCase to Human Resource API");
+            try
+            {
+
+                Console.WriteLine($"Trying to Push DeleteCase to Human Resource API");
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.PostAsJsonAsync<DisciplinaryCase>($"{humanresourcesourceBaseUrl}/api/HumanResources/PushDisciplinaryCase", caseToDelete);
+
+                    Console.WriteLine(response.ReasonPhrase);
+                    Console.WriteLine(response.StatusCode);
+                    Console.WriteLine(response.RequestMessage);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting {caseToDelete.GetType().Name}: {ex.Message}");
+            }
             cases.Remove(caseToDelete);
         }
     }

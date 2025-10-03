@@ -93,7 +93,7 @@ namespace HumanResource.Pages
             HideCreateForm();
         }
 
-        private void UpdateIntern(Intern updatedIntern)
+        private async Task UpdateInternAsync(Intern updatedIntern)
         {
             var existingIntern = interns.FirstOrDefault(e => e.InternId == updatedIntern.InternId);
             if (existingIntern != null)
@@ -103,11 +103,53 @@ namespace HumanResource.Pages
                 existingIntern.Position = updatedIntern.Position;
                 existingIntern.Email = updatedIntern.Email;
             }
+            var humanresourcesourceBaseUrl = Configuration["CentralServerBaseUrl"];
+            humanresourcesourceBaseUrl = "https://localhost:57238";
+            Console.WriteLine($"Pushing UpdateIntern to Human Resource API");
+            try
+            {
+
+                Console.WriteLine($"Trying to Push UpdateIntern to Human Resource API");
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.PostAsJsonAsync<Intern>($"{humanresourcesourceBaseUrl}/api/HumanResources/UpdateIntern", updatedIntern);
+
+                    Console.WriteLine(response.ReasonPhrase);
+                    Console.WriteLine(response.StatusCode);
+                    Console.WriteLine(response.RequestMessage);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating {updatedIntern.GetType().Name}: {ex.Message}");
+            }
             HideEditForm();
         }
 
-        private void DeleteIntern(Intern internToDelete)
+        private async Task DeleteInternAsync(Intern internToDelete)
         {
+            var humanresourcesourceBaseUrl = Configuration["CentralServerBaseUrl"];
+            humanresourcesourceBaseUrl = "https://localhost:57238";
+            Console.WriteLine($"Pushing DeleteIntern to Human Resource API");
+            try
+            {
+
+                Console.WriteLine($"Trying to Push DeleteIntern to Human Resource API");
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.PostAsJsonAsync<Intern>($"{humanresourcesourceBaseUrl}/api/HumanResources/DeleteIntern", internToDelete);
+
+                    Console.WriteLine(response.ReasonPhrase);
+                    Console.WriteLine(response.StatusCode);
+                    Console.WriteLine(response.RequestMessage);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting {internToDelete.GetType().Name}: {ex.Message}");
+            }
             interns.Remove(internToDelete);
         }
     }

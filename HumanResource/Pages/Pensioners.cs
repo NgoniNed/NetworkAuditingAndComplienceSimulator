@@ -93,7 +93,7 @@ namespace HumanResource.Pages
             HideCreateForm();
         }
 
-        private void UpdatePensioner(Pensioner updatedPensioner)
+        private async Task UpdatePensionerAsync(Pensioner updatedPensioner)
         {
             var existingPensioner = pensioners.FirstOrDefault(e => e.PensionerId == updatedPensioner.PensionerId);
             if (existingPensioner != null)
@@ -103,11 +103,53 @@ namespace HumanResource.Pages
                 existingPensioner.LastPosition = updatedPensioner.LastPosition;
                 existingPensioner.Email = updatedPensioner.Email;
             }
+            var humanresourcesourceBaseUrl = Configuration["CentralServerBaseUrl"];
+            humanresourcesourceBaseUrl = "https://localhost:57238";
+            Console.WriteLine($"Pushing UpdatePensionerAsync to Human Resource API");
+            try
+            {
+
+                Console.WriteLine($"Trying to Push UpdatePensionerAsync to Human Resource API");
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.PostAsJsonAsync<Pensioner>($"{humanresourcesourceBaseUrl}/api/HumanResources/UpdatePensioner", updatedPensioner);
+
+                    Console.WriteLine(response.ReasonPhrase);
+                    Console.WriteLine(response.StatusCode);
+                    Console.WriteLine(response.RequestMessage);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating {updatedPensioner.GetType().Name}: {ex.Message}");
+            }
             HideEditForm();
         }
 
-        private void DeletePensioner(Pensioner pensionerToDelete)
+        private async Task DeletePensionerAsync(Pensioner pensionerToDelete)
         {
+            var humanresourcesourceBaseUrl = Configuration["CentralServerBaseUrl"];
+            humanresourcesourceBaseUrl = "https://localhost:57238";
+            Console.WriteLine($"Pushing DeletePensionerAsync to Human Resource API");
+            try
+            {
+
+                Console.WriteLine($"Trying to Push DeletePensionerAsync to Human Resource API");
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.PostAsJsonAsync<Pensioner>($"{humanresourcesourceBaseUrl}/api/HumanResources/DeletePensioner", pensionerToDelete);
+
+                    Console.WriteLine(response.ReasonPhrase);
+                    Console.WriteLine(response.StatusCode);
+                    Console.WriteLine(response.RequestMessage);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting {pensionerToDelete.GetType().Name}: {ex.Message}");
+            }
             pensioners.Remove(pensionerToDelete);
         }
     }
