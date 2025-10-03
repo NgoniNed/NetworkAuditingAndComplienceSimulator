@@ -65,6 +65,27 @@ namespace Finance.Pages
         private async Task AddAsset()
         {
             assets.Add(newAsset);
+            var humanresourcesourceBaseUrl = Configuration["CentralServerBaseUrl"];
+            humanresourcesourceBaseUrl = "https://localhost:57238";
+            Console.WriteLine($"Pushing AddAsset to Finance API");
+            try
+            {
+
+                Console.WriteLine($"Trying to Push AddAsset to Finance API");
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.PostAsJsonAsync<Asset>($"{humanresourcesourceBaseUrl}/api/Finance/PushAsset", newAsset);
+
+                    Console.WriteLine(response.ReasonPhrase);
+                    Console.WriteLine(response.StatusCode);
+                    Console.WriteLine(response.RequestMessage);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error adding {newAsset.GetType().Name}: {ex.Message}");
+            }
             HideCreateForm();
         }
         private void ShowEditForm(Asset asset)
@@ -91,6 +112,27 @@ namespace Finance.Pages
             {
                 assets[idx] = editingAsset;
             }
+            var humanresourcesourceBaseUrl = Configuration["CentralServerBaseUrl"];
+            humanresourcesourceBaseUrl = "https://localhost:57238";
+            Console.WriteLine($"Pushing UpdateAsset to Finance API");
+            try
+            {
+
+                Console.WriteLine($"Trying to Push UpdateAsset to Finance API");
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.PostAsJsonAsync<Asset>($"{humanresourcesourceBaseUrl}/api/Finance/UpdateAsset", editingAsset);
+
+                    Console.WriteLine(response.ReasonPhrase);
+                    Console.WriteLine(response.StatusCode);
+                    Console.WriteLine(response.RequestMessage);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating {editingAsset.GetType().Name}: {ex.Message}");
+            }
             HideEditForm();
         }
 
@@ -107,6 +149,27 @@ namespace Finance.Pages
 
         private async Task DeleteAssetConfirmed()
         {
+            var humanresourcesourceBaseUrl = Configuration["CentralServerBaseUrl"];
+            humanresourcesourceBaseUrl = "https://localhost:57238";
+            Console.WriteLine($"Pushing DeleteAssetConfirmed to Finance API");
+            try
+            {
+
+                Console.WriteLine($"Trying to Push DeleteAssetConfirmed to Finance API");
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.PostAsJsonAsync<Asset>($"{humanresourcesourceBaseUrl}/api/Finance/DeleteAsset", deletingAsset);
+
+                    Console.WriteLine(response.ReasonPhrase);
+                    Console.WriteLine(response.StatusCode);
+                    Console.WriteLine(response.RequestMessage);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting {deletingAsset.GetType().Name}: {ex.Message}");
+            }
             assets.Remove(deletingAsset);
             showDeleteConfirm = false;
         }

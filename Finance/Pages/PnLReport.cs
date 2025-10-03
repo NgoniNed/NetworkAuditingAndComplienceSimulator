@@ -71,6 +71,26 @@ namespace Finance.Pages
         private async Task AddPnL()
         {
             pnl.Add(newPnL);
+            financeBaseUrl = "https://localhost:42442";
+            Console.WriteLine($"Pushing AddPnL to Finance API");
+            try
+            {
+
+                Console.WriteLine($"Trying to Push AddPnL to Finance API");
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.PostAsJsonAsync<PnL>($"{financeBaseUrl}/api/Finance/PushPnL", newPnL);
+
+                    Console.WriteLine(response.ReasonPhrase);
+                    Console.WriteLine(response.StatusCode);
+                    Console.WriteLine(response.RequestMessage);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error adding {newPnL.GetType().Name}: {ex.Message}");
+            }
             HideCreateForm();
         }
 
@@ -89,6 +109,26 @@ namespace Finance.Pages
         {
             var idx = pnl.FindIndex(e => e.Id == editingPnL.Id);
             if (idx >= 0) pnl[idx] = editingPnL;
+            financeBaseUrl = "https://localhost:42442";
+            Console.WriteLine($"Pushing UpdatePnL to Finance API");
+            try
+            {
+
+                Console.WriteLine($"Trying to Push UpdatePnL to Finance API");
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.PostAsJsonAsync<PnL>($"{financeBaseUrl}/api/Finance/UpdatePnL", editingPnL);
+
+                    Console.WriteLine(response.ReasonPhrase);
+                    Console.WriteLine(response.StatusCode);
+                    Console.WriteLine(response.RequestMessage);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating {editingPnL.GetType().Name}: {ex.Message}");
+            }
             HideEditForm();
         }
 
@@ -100,6 +140,26 @@ namespace Finance.Pages
 
         private async Task DeletePnLConfirmed()
         {
+            financeBaseUrl = "https://localhost:42442";
+            Console.WriteLine($"Pushing DeletePnLConfirmed to Finance API");
+            try
+            {
+
+                Console.WriteLine($"Trying to Push DeletePnLConfirmed to Finance API");
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.PostAsJsonAsync<PnL>($"{financeBaseUrl}/api/Finance/DeleteTaxItem", deletingPnL);
+
+                    Console.WriteLine(response.ReasonPhrase);
+                    Console.WriteLine(response.StatusCode);
+                    Console.WriteLine(response.RequestMessage);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting {deletingPnL.GetType().Name}: {ex.Message}");
+            }
             pnl.Remove(deletingPnL);
             showDeleteConfirm = false;
         }

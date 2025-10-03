@@ -66,6 +66,26 @@ namespace Finance.Pages
         private async Task AddTaxItem()
         {
             taxItems.Add(newTaxItem);
+            financeBaseUrl = "https://localhost:42442";
+            Console.WriteLine($"Pushing AddTaxItem to AddAsset API");
+            try
+            {
+
+                Console.WriteLine($"Trying to Push AddTaxItem to AddAsset API");
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.PostAsJsonAsync<TaxItem>($"{financeBaseUrl}/api/Finance/PushTaxItem", newTaxItem);
+
+                    Console.WriteLine(response.ReasonPhrase);
+                    Console.WriteLine(response.StatusCode);
+                    Console.WriteLine(response.RequestMessage);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error adding {newTaxItem.GetType().Name}: {ex.Message}");
+            }
             HideCreateForm();
         }
         private void ShowEditForm(TaxItem taxItem)
@@ -86,6 +106,26 @@ namespace Finance.Pages
             {
                 taxItems[idx] = editingTaxItem;
             }
+            financeBaseUrl = "https://localhost:42442";
+            Console.WriteLine($"Pushing UpdateTaxItem to Finance API");
+            try
+            {
+
+                Console.WriteLine($"Trying to Push UpdateTaxItem to Finance API");
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.PostAsJsonAsync<TaxItem>($"{financeBaseUrl}/api/Finance/UpdateTaxItem", editingTaxItem);
+
+                    Console.WriteLine(response.ReasonPhrase);
+                    Console.WriteLine(response.StatusCode);
+                    Console.WriteLine(response.RequestMessage);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating {editingTaxItem.GetType().Name}: {ex.Message}");
+            }
             HideEditForm();
         }
 
@@ -102,6 +142,26 @@ namespace Finance.Pages
 
         private async Task DeleteTaxItemConfirmed()
         {
+            financeBaseUrl = "https://localhost:42442";
+            Console.WriteLine($"Pushing DeleteTaxItemConfirmed to Finance API");
+            try
+            {
+
+                Console.WriteLine($"Trying to Push DeleteTaxItemConfirmed to Finance API");
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.PostAsJsonAsync<TaxItem>($"{financeBaseUrl}/api/Finance/DeleteTaxItem", deletingTaxItem);
+
+                    Console.WriteLine(response.ReasonPhrase);
+                    Console.WriteLine(response.StatusCode);
+                    Console.WriteLine(response.RequestMessage);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting {deletingTaxItem.GetType().Name}: {ex.Message}");
+            }
             taxItems.Remove(deletingTaxItem);
             showDeleteConfirm = false;
         }

@@ -71,7 +71,28 @@ namespace Finance.Pages
 
         private async Task AddBalanceSheet()
         {
-            balancesheet.Add(new SharedLibrary.Data.Finance.BalanceSheet());
+            var newbalanceSheet = new SharedLibrary.Data.Finance.BalanceSheet();
+            balancesheet.Add(newbalanceSheet);
+            financeBaseUrl = "https://localhost:42442";
+            Console.WriteLine($"Pushing AddBalanceSheet to Finance API");
+            try
+            {
+
+                Console.WriteLine($"Trying to Push AddBalanceSheet to Finance API");
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.PostAsJsonAsync<SharedLibrary.Data.Finance.BalanceSheet>($"{financeBaseUrl}/api/Finance/PushBalanceSheet", newbalanceSheet);
+
+                    Console.WriteLine(response.ReasonPhrase);
+                    Console.WriteLine(response.StatusCode);
+                    Console.WriteLine(response.RequestMessage);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error adding {newbalanceSheet.GetType().Name}: {ex.Message}");
+            }
             HideCreateForm();
         }
 
@@ -90,6 +111,26 @@ namespace Finance.Pages
         {
             var idx = balancesheet.FindIndex(b => b.Id == editingSheet.Id);
             if (idx >= 0) balancesheet[idx] = editingSheet;
+            financeBaseUrl = "https://localhost:42442";
+            Console.WriteLine($"Pushing UpdateBalanceSheet to Finance API");
+            try
+            {
+
+                Console.WriteLine($"Trying to Push UpdateBalanceSheet to Finance API");
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.PostAsJsonAsync<SharedLibrary.Data.Finance.BalanceSheet>($"{financeBaseUrl}/api/Finance/UpdateBalanceSheet", editingSheet);
+
+                    Console.WriteLine(response.ReasonPhrase);
+                    Console.WriteLine(response.StatusCode);
+                    Console.WriteLine(response.RequestMessage);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating {editingSheet.GetType().Name}: {ex.Message}");
+            }
             HideEditForm();
         }
 
@@ -101,6 +142,26 @@ namespace Finance.Pages
 
         private async Task DeleteBalanceSheetConfirmed()
         {
+            financeBaseUrl = "https://localhost:42442";
+            Console.WriteLine($"Pushing DeleteBalanceSheetConfirmed to Finance API");
+            try
+            {
+
+                Console.WriteLine($"Trying to Push DeleteBalanceSheetConfirmed to Finance API");
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.PostAsJsonAsync<SharedLibrary.Data.Finance.BalanceSheet>($"{financeBaseUrl}/api/Finance/DeleteBalanceSheet", deletingSheet);
+
+                    Console.WriteLine(response.ReasonPhrase);
+                    Console.WriteLine(response.StatusCode);
+                    Console.WriteLine(response.RequestMessage);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting {deletingSheet.GetType().Name}: {ex.Message}");
+            }
             balancesheet.Remove(deletingSheet);
             showDeleteConfirm = false;
         }
