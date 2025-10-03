@@ -93,9 +93,9 @@ namespace Logistics.Pages
             HideCreateForm();
         }
 
-        private void UpdateShipment(Shipment updatedShipment)
+        private async Task UpdateShipmentAsync(Shipment updatedShipment)
         {
-            var existingShipment = shipments.FirstOrDefault(e => e.ShipmentId == updatedShipment.ShipmentId);
+            /*var existingShipment = shipments.FirstOrDefault(e => e.ShipmentId == updatedShipment.ShipmentId);
             if (existingShipment != null)
             {
                 existingShipment.ShipmentNumber = updatedShipment.ShipmentNumber;
@@ -103,12 +103,54 @@ namespace Logistics.Pages
                 existingShipment.Destination = updatedShipment.Destination;
                 existingShipment.ExpectedDeliveryDate = updatedShipment.ExpectedDeliveryDate;
                 existingShipment.CurrentStatus = updatedShipment.CurrentStatus;
+            }*/
+            var logisticssourceBaseUrl = Configuration["CentralServerBaseUrl"];
+            logisticssourceBaseUrl = "https://localhost:57238";
+            Console.WriteLine($"Pushing UpdateShipmentAsync to Logistics API");
+            try
+            {
+
+                Console.WriteLine($"Trying to Push UpdateShipmentAsync to Logistics API");
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.PostAsJsonAsync<Shipment>($"{logisticssourceBaseUrl}/api/Logistics/UpdateShipment", updatedShipment);
+
+                    Console.WriteLine(response.ReasonPhrase);
+                    Console.WriteLine(response.StatusCode);
+                    Console.WriteLine(response.RequestMessage);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error Updating {updatedShipment.GetType().Name}: {ex.Message}");
             }
             HideEditForm();
         }
 
-        private void DeleteShipment(Shipment shipmentToDelete)
+        private async Task DeleteShipmentAsync(Shipment shipmentToDelete)
         {
+            var logisticssourceBaseUrl = Configuration["CentralServerBaseUrl"];
+            logisticssourceBaseUrl = "https://localhost:57238";
+            Console.WriteLine($"Pushing DeleteShipmentAsync to Logistics API");
+            try
+            {
+
+                Console.WriteLine($"Trying to Push DeleteShipmentAsync to Logistics API");
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.PostAsJsonAsync<Shipment>($"{logisticssourceBaseUrl}/api/Logistics/DeleteShipment", shipmentToDelete);
+
+                    Console.WriteLine(response.ReasonPhrase);
+                    Console.WriteLine(response.StatusCode);
+                    Console.WriteLine(response.RequestMessage);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error Deleting {shipmentToDelete.GetType().Name}: {ex.Message}");
+            }
             shipments.Remove(shipmentToDelete);
         }
     }

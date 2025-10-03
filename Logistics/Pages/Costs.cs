@@ -74,7 +74,6 @@ namespace Logistics.Pages
         private async Task AddCostAsync(CostLog newCost)
         {
             costs.Add(newCost);
-            //API push request
             var logisticssourceBaseUrl = Configuration["CentralServerBaseUrl"];
             logisticssourceBaseUrl = "https://localhost:57238";
             Console.WriteLine($"Pushing to Logistics API");
@@ -99,21 +98,63 @@ namespace Logistics.Pages
             HideCreateForm();
         }
 
-        private void UpdateCost(CostLog updatedCost)
+        private async void UpdateCost(CostLog updatedCost)
         {
-            var existingCost = costs.FirstOrDefault(e => e.CostLogId == updatedCost.CostLogId);
+            /*var existingCost = costs.FirstOrDefault(e => e.CostLogId == updatedCost.CostLogId);
             if (existingCost != null)
             {
                 existingCost.Date = updatedCost.Date;
                 existingCost.Description = updatedCost.Description;
                 existingCost.Amount = updatedCost.Amount;
                 existingCost.Category = updatedCost.Category;
+            }*/
+            var logisticssourceBaseUrl = Configuration["CentralServerBaseUrl"];
+            logisticssourceBaseUrl = "https://localhost:57238";
+            Console.WriteLine($"Pushing Update to Logistics API");
+            try
+            {
+
+                Console.WriteLine($"Trying to Push Update to Logistics API");
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.PostAsJsonAsync<CostLog>($"{logisticssourceBaseUrl}/api/Logistics/UpdateCostLog", updatedCost);
+
+                    Console.WriteLine(response.ReasonPhrase);
+                    Console.WriteLine(response.StatusCode);
+                    Console.WriteLine(response.RequestMessage);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error Updating {updatedCost.GetType().Name}: {ex.Message}");
             }
             HideEditForm();
         }
 
-        private void DeleteCost(CostLog costToDelete)
+        private async Task DeleteCostAsync(CostLog costToDelete)
         {
+            var logisticssourceBaseUrl = Configuration["CentralServerBaseUrl"];
+            logisticssourceBaseUrl = "https://localhost:57238";
+            Console.WriteLine($"Pushing Delete Cost to Logistics API");
+            try
+            {
+
+                Console.WriteLine($"Trying to Push Delete Cost to Logistics API");
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.PostAsJsonAsync<CostLog>($"{logisticssourceBaseUrl}/api/Logistics/DeleteCostLog", costToDelete);
+
+                    Console.WriteLine(response.ReasonPhrase);
+                    Console.WriteLine(response.StatusCode);
+                    Console.WriteLine(response.RequestMessage);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting {costToDelete.GetType().Name}: {ex.Message}");
+            }
             costs.Remove(costToDelete);
         }
     }

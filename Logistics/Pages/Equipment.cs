@@ -94,9 +94,9 @@ namespace Logistics.Pages
             HideCreateForm();
         }
 
-        private void UpdateEquipment(SharedLibrary.Data.Logistics.Equipment updatedEquipment)
+        private async Task UpdateEquipmentAsync(SharedLibrary.Data.Logistics.Equipment updatedEquipment)
         {
-            var existingEquipment = equipments.FirstOrDefault(e => e.EquipmentId == updatedEquipment.EquipmentId);
+            /*var existingEquipment = equipments.FirstOrDefault(e => e.EquipmentId == updatedEquipment.EquipmentId);
             if (existingEquipment != null)
             {
                 existingEquipment.Name = updatedEquipment.Name;
@@ -104,12 +104,54 @@ namespace Logistics.Pages
                 existingEquipment.Make = updatedEquipment.Make;
                 existingEquipment.Model = updatedEquipment.Model;
                 existingEquipment.NextServiceDate = updatedEquipment.NextServiceDate;
+            }*/
+            var logisticssourceBaseUrl = Configuration["CentralServerBaseUrl"];
+            logisticssourceBaseUrl = "https://localhost:57238";
+            Console.WriteLine($"Pushing Update Equipment to Logistics API");
+            try
+            {
+
+                Console.WriteLine($"Trying to Push Update Equipment to Logistics API");
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.PostAsJsonAsync<SharedLibrary.Data.Logistics.Equipment>($"{logisticssourceBaseUrl}/api/Logistics/UpdateEquipment", updatedEquipment);
+
+                    Console.WriteLine(response.ReasonPhrase);
+                    Console.WriteLine(response.StatusCode);
+                    Console.WriteLine(response.RequestMessage);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error Updating {updatedEquipment.GetType().Name}: {ex.Message}");
             }
             HideEditForm();
         }
 
-        private void DeleteEquipment(SharedLibrary.Data.Logistics.Equipment equipmentToDelete)
+        private async Task DeleteEquipmentAsync(SharedLibrary.Data.Logistics.Equipment equipmentToDelete)
         {
+            var logisticssourceBaseUrl = Configuration["CentralServerBaseUrl"];
+            logisticssourceBaseUrl = "https://localhost:57238";
+            Console.WriteLine($"Pushing Delete Equipment to Logistics API");
+            try
+            {
+
+                Console.WriteLine($"Trying to Push Delete Equipment to Logistics API");
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.PostAsJsonAsync<SharedLibrary.Data.Logistics.Equipment>($"{logisticssourceBaseUrl}/api/Logistics/DeleteEquipment", equipmentToDelete);
+
+                    Console.WriteLine(response.ReasonPhrase);
+                    Console.WriteLine(response.StatusCode);
+                    Console.WriteLine(response.RequestMessage);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error Deleting {equipmentToDelete.GetType().Name}: {ex.Message}");
+            }
             equipments.Remove(equipmentToDelete);
         }
     }

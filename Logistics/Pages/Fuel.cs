@@ -96,9 +96,9 @@ namespace Logistics.Pages
             HideCreateForm();
         }
 
-        private void UpdateFuel(FuelLog updatedFuel)
+        private async Task UpdateFuelAsync(FuelLog updatedFuel)
         {
-            var existingFuel = fuelLogs.FirstOrDefault(e => e.FuelLogId == updatedFuel.FuelLogId);
+            /*var existingFuel = fuelLogs.FirstOrDefault(e => e.FuelLogId == updatedFuel.FuelLogId);
             if (existingFuel != null)
             {
                 existingFuel.Date = updatedFuel.Date;
@@ -106,12 +106,54 @@ namespace Logistics.Pages
                 existingFuel.LitersFilled = updatedFuel.LitersFilled;
                 existingFuel.Cost = updatedFuel.Cost;
                 existingFuel.OdometerReading = updatedFuel.OdometerReading;
+            }*/
+            var logisticssourceBaseUrl = Configuration["CentralServerBaseUrl"];
+            logisticssourceBaseUrl = "https://localhost:57238";
+            Console.WriteLine($"Pushing UpdateFuelAsync to Logistics API");
+            try
+            {
+
+                Console.WriteLine($"Trying to Push UpdateFuelAsync to Logistics API");
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.PostAsJsonAsync<FuelLog>($"{logisticssourceBaseUrl}/api/Logistics/UpdateFuelLog", updatedFuel);
+
+                    Console.WriteLine(response.ReasonPhrase);
+                    Console.WriteLine(response.StatusCode);
+                    Console.WriteLine(response.RequestMessage);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error Updating {updatedFuel.GetType().Name}: {ex.Message}");
             }
             HideEditForm();
         }
 
-        private void DeleteFuel(FuelLog fuelToDelete)
+        private async Task DeleteFuelAsync(FuelLog fuelToDelete)
         {
+            var logisticssourceBaseUrl = Configuration["CentralServerBaseUrl"];
+            logisticssourceBaseUrl = "https://localhost:57238";
+            Console.WriteLine($"Pushing DeleteFuelAsync to Logistics API");
+            try
+            {
+
+                Console.WriteLine($"Trying to Push DeleteFuelAsync to Logistics API");
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.PostAsJsonAsync<FuelLog>($"{logisticssourceBaseUrl}/api/Logistics/DeleteFuelLog", fuelToDelete);
+
+                    Console.WriteLine(response.ReasonPhrase);
+                    Console.WriteLine(response.StatusCode);
+                    Console.WriteLine(response.RequestMessage);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error Deleting {fuelToDelete.GetType().Name}: {ex.Message}");
+            }
             fuelLogs.Remove(fuelToDelete);
         }
     }
