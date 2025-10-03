@@ -34,7 +34,7 @@
                         <td>@shipment.CurrentStatus</td>
                         <td>
                             <button class="btn btn-sm btn-info" @onclick="() => ShowEditForm(shipment)">Edit</button>
-                            <button class="btn btn-sm btn-danger" @onclick="() => DeleteShipment(shipment)">Delete</button>
+                            <button class="btn btn-sm btn-danger" @onclick="() => DeleteShipmentAsync(shipment)">Delete</button>
                         </td>
                     </tr>
                 }
@@ -54,7 +54,7 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        <Logistics.Components.ShipmentForm Shipment="selectedShipment" OnShipmentUpdated="UpdateShipment" OnCancel="HideEditForm" />
+                        <Logistics.Components.ShipmentForm Shipment="selectedShipment" OnShipmentUpdated="UpdateShipmentAsync" OnCancel="HideEditForm" />
                     </div>
                 </div>
             </div>

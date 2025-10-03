@@ -33,7 +33,7 @@
                         <td>@cost.Category</td>
                         <td>
                             <button class="btn btn-sm btn-info" @onclick="() => ShowEditForm(cost)">Edit</button>
-                            <button class="btn btn-sm btn-danger" @onclick="() => DeleteCost(cost)">Delete</button>
+                            <button class="btn btn-sm btn-danger" @onclick="() => DeleteCostAsync(cost)">Delete</button>
                         </td>
                     </tr>
                 }

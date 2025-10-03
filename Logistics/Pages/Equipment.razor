@@ -34,7 +34,7 @@
                         <td>@equipment.NextServiceDate.ToShortDateString()</td>
                         <td>
                             <button class="btn btn-sm btn-info" @onclick="() => ShowEditForm(equipment)">Edit</button>
-                            <button class="btn btn-sm btn-danger" @onclick="() => DeleteEquipment(equipment)">Delete</button>
+                            <button class="btn btn-sm btn-danger" @onclick="() => DeleteEquipmentAsync(equipment)">Delete</button>
                         </td>
                     </tr>
                 }
@@ -54,7 +54,7 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        <Logistics.Components.EquipmentForm Equipment="selectedEquipment" OnEquipmentUpdated="UpdateEquipment" OnCancel="HideEditForm" />
+                        <Logistics.Components.EquipmentForm Equipment="selectedEquipment" OnEquipmentUpdated="UpdateEquipmentAsync" OnCancel="HideEditForm" />
                     </div>
                 </div>
             </div>

@@ -35,7 +35,7 @@
                         <td>@fuelLog.OdometerReading</td>
                         <td>
                             <button class="btn btn-sm btn-info" @onclick="() => ShowEditForm(fuelLog)">Edit</button>
-                            <button class="btn btn-sm btn-danger" @onclick="() => DeleteFuel(fuelLog)">Delete</button>
+                            <button class="btn btn-sm btn-danger" @onclick="() => DeleteFuelAsync(fuelLog)">Delete</button>
                         </td>
                     </tr>
                 }
@@ -55,7 +55,7 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        <Logistics.Components.FuelForm FuelLog="selectedFuelLog" OnFuelUpdated="UpdateFuel" OnCancel="HideEditForm" />
+                        <Logistics.Components.FuelForm FuelLog="selectedFuelLog" OnFuelUpdated="UpdateFuelAsync" OnCancel="HideEditForm" />
                     </div>
                 </div>
             </div>
