@@ -9,4 +9,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Default|AnyCPU' ">
     <OutputPath>.\</OutputPath>
   </PropertyGroup>
+  <ItemGroup>
+    <None Include="Images\V1 overview.png" />
+  </ItemGroup>
 </Project>
