@@ -9,6 +9,8 @@
     <None Remove="Components\" />
     <None Remove="Controllers\" />
     <None Remove="Services\" />
+    <None Remove="StackExchange.Redis" />
+    <None Remove="RabbitMQ.Client" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Hubs\" />

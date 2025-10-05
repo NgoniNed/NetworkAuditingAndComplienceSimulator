@@ -31,6 +31,7 @@ namespace CentralServer
             services.AddSingleton<Services.DataService>();
             services.AddRazorPages();
             services.AddServerSideBlazor();
+            services.AddMemoryCache();
             services.AddSingleton<Dispatcher>(sp => Dispatcher.CreateDefault());
         }
 

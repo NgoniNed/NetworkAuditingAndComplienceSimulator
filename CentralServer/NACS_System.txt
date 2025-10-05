@@ -1,0 +1,1900 @@
+﻿<Router AppAssembly="@typeof(Program).Assembly" PreferExactMatches="@true">
+    <Found Context="routeData">
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+    </Found>
+    <NotFound>
+        <LayoutView Layout="@typeof(MainLayout)">
+            <p>Sorry, there's nothing at this address.</p>
+        </LayoutView>
+    </NotFound>
+</Router>
+-e 
+--- End of ./App.razor ---
+
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Hubs\" />
+    <None Remove="Components\" />
+    <None Remove="Controllers\" />
+    <None Remove="Services\" />
+    <None Remove="StackExchange.Redis" />
+    <None Remove="RabbitMQ.Client" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Hubs\" />
+    <Folder Include="Components\" />
+    <Folder Include="Controllers\" />
+    <Folder Include="Services\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BaseLibrary\BaseLibrary.csproj">
+      <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
+    </ProjectReference>
+    <ProjectReference Include="..\SharedLibrary\SharedLibrary.csproj">
+      <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
+    </ProjectReference>
+  </ItemGroup>
+</Project>
+-e 
+--- End of ./CentralServer.csproj ---
+
+﻿@using CentralServer.Data
+@namespace CentralServer.Components
+
+
+<div class="form-group">
+    <input placeholder="Department Name" @bind="newDept.Name" class="form-control" />
+    <input placeholder="Contact Email" @bind="newDept.Email" class="form-control" />
+    <button class="btn btn-primary" @onclick="Submit">Register</button>
+</div>
+@code {
+    private Department newDept = new();
+
+    [Parameter] public EventCallback<Department> OnRegister { get; set; }
+
+    private async Task Submit()
+    {
+        await OnRegister.InvokeAsync(newDept);
+        newDept = new(); // Reset form
+    }
+}-e 
+--- End of ./Components/DepartmentForm.razor ---
+
+﻿@using CentralServer.Data
+@namespace CentralServer.Components
+
+<table class="table">
+    <thead>
+        <tr><th>Name</th><th>Email</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+        @foreach (var dept in Departments)
+        {
+            <tr>
+                <td>@dept.Name</td>
+                <td>@dept.Email</td>
+                <td>@dept.Status</td>
+            </tr>
+        }
+    </tbody>
+</table>
+@code {
+    [Parameter]
+    public List<Department> Departments { get; set; } = new();
+}-e 
+--- End of ./Components/DepartmentList.razor ---
+
+﻿@using CentralServer.Data
+@namespace CentralServer.Components
+
+@code {
+    [Parameter] public List<EventEntry> Events { get; set; } = new();
+}
+
+<ul class="list-group">
+    @foreach (var evt in Events)
+    {
+        <li class="list-group-item">
+            <strong>@evt.Title</strong> - @evt.Description <br />
+            <small>@evt.Timestamp | Severity: @evt.Severity</small>
+        </li>
+    }
+</ul>
+-e 
+--- End of ./Components/EventFeed.razor ---
+
+﻿
+@using CentralServer.Data
+@namespace CentralServer.Components
+
+<div class="form-group">
+    <input placeholder="Title" @bind="newEvent.Title" class="form-control" />
+    <textarea placeholder="Description" @bind="newEvent.Description" class="form-control"></textarea>
+    <input placeholder="Affected Departments" @bind="newEvent.TargetDepartments" class="form-control" />
+    <select @bind="newEvent.Severity" class="form-control">
+        <option>Info</option>
+        <option>Warning</option>
+        <option>Critical</option>
+    </select>
+    <button class="btn btn-success" @onclick="Submit">Create Event</button>
+</div>
+
+@code {
+    private EventEntry newEvent = new();
+
+    [Parameter]
+    public EventCallback<EventEntry> OnCreate { get; set; }
+
+    private async Task Submit()
+    {
+        await OnCreate.InvokeAsync(newEvent);
+        newEvent = new();
+    }
+
+
+
+}
+
+-e 
+--- End of ./Components/EventForm.razor ---
+
+﻿@using CentralServer.Data
+
+@namespace CentralServer.Components
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Timestamp</th>
+            <th>Source</th>
+            <th>Destination</th>
+            <th>Type</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var log in Logs)
+        {
+            <tr>
+                <td>@log.Timestamp</td>
+                <td>@log.Source</td>
+                <td>@log.Destination</td>
+                <td>@log.Type</td>
+                <td>@log.Status</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    [Parameter] public List<LogEntry> Logs { get; set; } = new();
+}
+-e 
+--- End of ./Components/LogTable.razor ---
+
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using System.Text.Json;
+using SharedLibrary.Data.Finance;
+using SharedLibrary.Data.HumanResource;
+using SharedLibrary.Data.Logistics;
+using System;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Linq;
+using CentralServer.Services;
+using System.Net.Http;
+using System.Net.Http.Json;
+
+namespace CentralServer.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public partial class DataController : ControllerBase
+    {
+        private readonly ILogger<DataController> _logger;
+        private readonly DataService _dataService;
+
+        public DataController(ILogger<DataController> logger, DataService dataService)
+        {
+            _logger = logger;
+            _dataService = dataService;
+        }
+        
+
+        [HttpPost("ReceiveData")]
+        public async Task<IActionResult> ReceiveData(string dataType, [FromBody] JsonElement data)
+        {
+            _logger.LogInformation($"Received data of type: {dataType}");
+            _dataService.AddEventMessage(HttpContext.Request.Method, $"Data of type{dataType}", DetermineDepartment(dataType));
+            try
+            {
+                switch(DetermineDepartment(dataType))
+                {
+                    case "Finance":
+                    {
+                        return await ProcessPushForFinanceDepartment(dataType,data);
+                    }
+                    case "Logistics":
+                    {
+                        return await ProcessPushForLogisticsDepartment(dataType, data);
+                    }
+                    case "HumanResource":
+                    {
+                        return await ProcessPushForHumanResourceDepartment(dataType, data);
+                    }
+                    default:
+                    {
+                        _logger.LogError($"Failed to determine department for data type: {dataType}");
+                        return BadRequest($"Failed to determine department for data type: {dataType}");
+                    }
+                }
+                
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error processing data: {ex.Message}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        private async Task<IActionResult> ProcessPushForHumanResourceDepartment(string dataType, JsonElement data)
+        {
+            object receivedObject = null;
+            JsonSerializerOptions options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            switch (dataType)
+            {
+                case "Pensioner":
+                    receivedObject = JsonSerializer.Deserialize<Pensioner>(data.GetRawText(), options);
+                    break;
+                case "Intern":
+                    receivedObject = JsonSerializer.Deserialize<Intern>(data.GetRawText(), options);
+                    break;
+                case "DisciplinaryCase":
+                    receivedObject = JsonSerializer.Deserialize<DisciplinaryCase>(data.GetRawText(), options);
+                    break;
+                case "Department":
+                    receivedObject = JsonSerializer.Deserialize<Department>(data.GetRawText(), options);
+                    break;
+                case "Employee":
+                    receivedObject = JsonSerializer.Deserialize<Employee>(data.GetRawText(), options);
+                    break;
+
+                default:
+                    _logger.LogError($"Unsupported data type: {dataType}");
+                    return BadRequest($"Unsupported data type: {dataType}");
+            }
+            if (receivedObject == null)
+            {
+                _logger.LogError("Failed to deserialize data.");
+                return BadRequest("Failed to deserialize data.");
+            }
+            // Store 
+
+            _logger.LogInformation($"Successfully processed data of type: {dataType}");
+            return Ok();
+        }
+
+        private async Task<IActionResult> ProcessPushForLogisticsDepartment(string dataType, JsonElement data)
+        {
+            object receivedObject = null;
+            JsonSerializerOptions options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            switch (dataType)
+            {
+                case "CostLog":
+                    receivedObject = JsonSerializer.Deserialize<CostLog>(data.GetRawText(), options);
+                    break;
+                case "FuelLog":
+                    receivedObject = JsonSerializer.Deserialize<FuelLog>(data.GetRawText(), options);
+                    break;
+                case "Equipment":
+                    receivedObject = JsonSerializer.Deserialize<Equipment>(data.GetRawText(), options);
+                    break;
+                case "Shipment":
+                    receivedObject = JsonSerializer.Deserialize<Shipment>(data.GetRawText(), options);
+                    break;
+                default:
+                    _logger.LogError($"Unsupported data type: {dataType}");
+                    return BadRequest($"Unsupported data type: {dataType}");
+            }
+            if (receivedObject == null)
+            {
+                _logger.LogError("Failed to deserialize data.");
+                return BadRequest("Failed to deserialize data.");
+            }
+            // Store 
+
+            _logger.LogInformation($"Successfully processed data of type: {dataType}");
+            return Ok();
+        }
+
+        private async Task<IActionResult> ProcessPushForFinanceDepartment(string dataType, JsonElement data)
+        {
+            object receivedObject = null;
+            JsonSerializerOptions options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            switch (dataType)
+            {
+                case "Asset":
+                    receivedObject = JsonSerializer.Deserialize<Asset>(data.GetRawText(), options);
+                    break;
+                case "BalanceSheet":
+                    receivedObject = JsonSerializer.Deserialize<BalanceSheet>(data.GetRawText(), options);
+                    break;
+                case "PnL":
+                    receivedObject = JsonSerializer.Deserialize<PnL>(data.GetRawText(), options);
+                    break;
+                case "TaxItem":
+                    receivedObject = JsonSerializer.Deserialize<TaxItem>(data.GetRawText(), options);
+                    break;
+                default:
+                    _logger.LogError($"Unsupported data type: {dataType}");
+                    return BadRequest($"Unsupported data type: {dataType}");
+            }
+            if (receivedObject == null)
+            {
+                _logger.LogError("Failed to deserialize data.");
+                return BadRequest("Failed to deserialize data.");
+            }
+            // Store 
+
+            _logger.LogInformation($"Successfully processed data of type: {dataType}");
+            return Ok();
+        }
+
+        private string DetermineDepartment(string dataType)
+        {
+            string department = string.Empty;
+            if ((dataType == "Asset") || (dataType == "TaxItem") || (dataType == "PnL") || (dataType == "BalanceSheet"))
+            {
+                department = "Finance";
+            }
+            else if ((dataType == "Department") || (dataType == "DisciplinaryCase") || (dataType == "Employee") || (dataType == "Intern") || (dataType == "Pensioner"))
+            {
+                department = "HumanResource";
+            }
+            else if ((dataType == "CostLog") || (dataType == "Equipment") || (dataType == "FuelLog") || (dataType == "Shipment"))
+            {
+                department = "Logistics";
+            }
+            Console.WriteLine($"Department Determine is : {department}");
+            return department;
+        }
+        
+    }
+}-e 
+--- End of ./Controllers/DataController.cs ---
+
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+
+// For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+
+namespace CentralServer.Controllers
+{
+    public partial class DataController : ControllerBase
+    {
+        [HttpGet("DeleteData")]
+        public IActionResult DeleteData(string dataType)
+        {
+            _logger.LogInformation($"DeleteData called for type: {dataType}");
+            _dataService.AddEventMessage(HttpContext.Request.Method, $"Deleting Data of type{dataType}", DetermineDepartment(dataType));
+
+            switch (DetermineDepartment(dataType))
+            {
+                case "Finance":
+                    {
+                        return GetActionForFinance(dataType);
+                    }
+                case "HumanResource":
+                    {
+                        return GetActionForHumanResource(dataType);
+                    }
+                case "Logistics":
+                    {
+                        return GetActionForLogistics(dataType);
+                    }
+            }
+
+            _logger.LogError($"Unsupported data type: {dataType}");
+            return BadRequest($"Unsupported in DeleteData data type: {dataType}");
+        }
+    }
+}
+-e 
+--- End of ./Controllers/DataDeleteController.cs ---
+
+﻿
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+
+// For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+
+namespace CentralServer.Controllers
+{
+    public partial class DataController : ControllerBase
+    {
+        [HttpGet("GetData")]
+        public IActionResult GetData(string dataType)
+        {
+            _logger.LogInformation($"GetData called for type: {dataType}");
+
+            _dataService.AddEventMessage(HttpContext.Request.Method, $"Sending Data of type{dataType}", DetermineDepartment(dataType));
+
+            switch (DetermineDepartment(dataType))
+            {
+                case "Finance":
+                    {
+                        return GetActionForFinance(dataType);
+                    }
+                case "HumanResource":
+                    {
+                        return GetActionForHumanResource(dataType);
+                    }
+                case "Logistics":
+                    {
+                        return GetActionForLogistics(dataType);
+                    }
+            }
+
+            _logger.LogError($"Unsupported data type: {dataType}");
+            return BadRequest($"Unsupported in GetData data type: {dataType}");
+        }
+
+        private IActionResult GetActionForLogistics(string dataType)
+        {
+            switch (dataType)
+            {
+                case "CostLog":
+                    {
+                        _dataService.AddCostLog();
+                        return Ok(_dataService.GetCostLog());
+                    }
+                case "Equipment":
+                    {
+                        _dataService.AddEquipmentLog();
+                        return Ok(_dataService.GetEquipmentLog());
+                    }
+                case "FuelLog":
+                    {
+                        _dataService.AddFuelLog();
+                        return Ok(_dataService.GetFuelLog());
+                    }
+                case "Shipment":
+                    {
+                        _dataService.AddShipmentLog();
+                        return Ok(_dataService.GetShipmentLog());
+                    }
+            }
+            return BadRequest($"Unsupported data type: {dataType} \t in GetActionForLogistics");
+
+        }
+
+        private IActionResult GetActionForHumanResource(string dataType)
+        {
+            switch (dataType)
+            {
+                case "Pensioner":
+                    {
+                        _dataService.AddPensionerLog();
+                        return Ok(_dataService.GetPensionerLog());
+                    }
+                case "Intern":
+                    {
+                        _dataService.AddInternLog();
+                        return Ok(_dataService.GetInternLog());
+                    }
+                case "Employee":
+                    {
+                        _dataService.AddEmployeeLog();
+                        return Ok(_dataService.GetEmployeeLog());
+                    }
+                case "DisciplinaryCase":
+                    {
+                        _dataService.AddDisciplinaryCaseLog();
+                        return Ok(_dataService.GetDisciplinaryCaseLog());
+                    }
+                case "Department":
+                    {
+                        _dataService.AddDepartmentLog();
+                        return Ok(_dataService.GetDepartmentLog());
+                    }
+            }
+            return BadRequest($"Unsupported data type: {dataType} \t in GetActionForHumanResource");
+        }
+
+        private IActionResult GetActionForFinance(string dataType)
+        {
+            switch (dataType)
+            {
+                case "Asset":
+                    {
+                        _dataService.AddAssetLog();
+                        return Ok(_dataService.GetAssetLog());
+                    }
+                case "BalanceSheet":
+                    {
+
+                        _dataService.AddBalanceSheetLog();
+                        return Ok(_dataService.GetBalanceSheetLog());
+                    }
+                case "PnL":
+                    {
+                        _dataService.AddPnLLog();
+                        return Ok(_dataService.GetPnLLog());
+                    }
+                case "TaxItem":
+                    {
+                        _dataService.AddTaxItmeLog();
+                        return Ok(_dataService.GetTaxItmeLog());
+                    }
+            }
+            return BadRequest($"Unsupported data type: {dataType} \t in GetActionForFinance");
+
+        }
+    }
+}
+-e 
+--- End of ./Controllers/DataGetActionController.cs ---
+
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+
+// For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+
+namespace CentralServer.Controllers
+{
+    public partial class DataController : ControllerBase
+    {
+        [HttpGet("UpdateData")]
+        public IActionResult UpdateData(string dataType)
+        {
+            _logger.LogInformation($"UpdateData called for type: {dataType}");
+            _dataService.AddEventMessage(HttpContext.Request.Method, $"Updating Data of type{dataType}", DetermineDepartment(dataType));
+
+            switch (DetermineDepartment(dataType))
+            {
+                case "Finance":
+                    {
+                        return GetActionForFinance(dataType);
+                    }
+                case "HumanResource":
+                    {
+                        return GetActionForHumanResource(dataType);
+                    }
+                case "Logistics":
+                    {
+                        return GetActionForLogistics(dataType);
+                    }
+            }
+
+            _logger.LogError($"Unsupported data type: {dataType}");
+            return BadRequest($"Unsupported in UpdateData data type: {dataType}");
+        }
+    }
+}
+-e 
+--- End of ./Controllers/DataUpdateController.cs ---
+
+﻿namespace CentralServer.Data
+{
+    public class Department
+    {
+        public string Name { get; set; }
+        public string Email { get; set; }
+        public string Status { get; set; } = "Active";
+        public DepartmentStatus DepartmentStatus
+        {
+            get;
+            set;
+        }
+    }
+    public enum DepartmentStatus
+    {
+        Active,
+        NonActive,
+        Suspended,
+        Banned,
+        Probation
+    }
+}
+-e 
+--- End of ./Data/Department.cs ---
+
+﻿using System;
+
+namespace CentralServer.Data
+{
+    public class EventEntry
+    {
+        public string Title { get; set; }
+        public string Description { get; set; }
+        public string TargetDepartments { get; set; }
+        public string Severity { get; set; }
+        public DateTime Timestamp { get; set; } = DateTime.Now;
+    }
+
+}
+-e 
+--- End of ./Data/EventEntry.cs ---
+
+﻿using System;
+
+namespace CentralServer.Data
+{
+    public class LogEntry
+    {
+        public DateTime Timestamp { get; set; }
+        public string Source { get; set; }
+        public string Destination { get; set; }
+        public string Type { get; set; }
+        public string Status { get; set; }
+    }
+
+}
+-e 
+--- End of ./Data/LogEntry.cs ---
+
+﻿using System;
+namespace CentralServer.Data
+{
+    public class Message
+    {
+        public string SenderDepartment
+        {
+            get;
+            set;
+        } 
+        public string RecipientDepartment
+        {
+            get;
+            set;
+        }
+        public string MessageContent
+        {
+            get;
+            set;
+        }
+        public MessageType Type
+        {
+            get;
+            set;
+        }
+        public DateTime Timestamp
+        {
+            get;
+            set;
+        } = DateTime.UtcNow;
+    }
+}
+-e 
+--- End of ./Data/Message.cs ---
+
+﻿namespace CentralServer.Data
+{
+    public enum MessageType
+    {
+        Department,
+        CrossDepartment,
+        DepartmentAnnouncement,
+        OrganizationAnnouncement
+    }
+}
+-e 
+--- End of ./Data/MessageType.cs ---
+
+FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
+
+WORKDIR /app
+
+COPY CentralServer.csproj ./
+
+RUN dotnet restore CentralServer.csproj
+
+COPY ./ ./
+
+RUN dotnet build CentralServer.csproj -c Release -o out
+
+RUN dotnet publish CentralServer.csproj -c Release -o out --no-restore
+
+FROM mcr.microsoft.com/dotnet/aspnet:5.0 AS runtime
+WORKDIR /app
+EXPOSE 80
+EXPOSE 443
+
+COPY --from=build /app/out ./
+
+ENTRYPOINT ["dotnet", "CentralServer.dll"]
+-e 
+--- End of ./Dockerfile ---
+
+﻿using Microsoft.AspNetCore.SignalR;
+using System.Threading.Tasks;
+using CentralServer.Data;
+using Microsoft.Extensions.Configuration;
+
+namespace CentralServer.Hubs
+{
+    public class CommunicationHub : Hub
+    {
+        private readonly IConfiguration _configuration;
+
+        public CommunicationHub(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
+
+        public async Task SendMessage(Message message)
+        {
+            if (string.IsNullOrEmpty(message.SenderDepartment) || string.IsNullOrEmpty(message.MessageContent))
+            {
+                return; 
+            }
+
+            //Routing logic
+            switch (message.Type)
+            {
+                case MessageType.Department:
+                    await Clients.Group(message.RecipientDepartment).SendAsync("ReceiveMessage", message);
+                    break;
+                case MessageType.CrossDepartment:
+                    await Clients.Group(message.RecipientDepartment).SendAsync("ReceiveMessage", message);
+                    break;
+                case MessageType.DepartmentAnnouncement:
+                    await Clients.Group(message.SenderDepartment).SendAsync("ReceiveMessage", message);
+                    break;
+                case MessageType.OrganizationAnnouncement:
+                    string[] allowedDepartments = _configuration.GetSection("AllowedDepartments").Get<string[]>();
+
+                    if (allowedDepartments != null)
+                    {
+                        foreach (var department in allowedDepartments)
+                        {
+                            await Clients.Group(department).SendAsync("ReceiveMessage", message);
+                        }
+                    }
+
+                    break;
+            }
+        }
+
+        public async Task JoinDepartmentGroup(string departmentName)
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, departmentName);
+        }
+    }
+}-e 
+--- End of ./Hubs/CommunicationHub.cs ---
+
+﻿@page
+@model CentralServer.Pages.ErrorModel
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Error</title>
+    <link href="~/css/bootstrap/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/css/app.css" rel="stylesheet" />
+</head>
+
+<body>
+    <div class="main">
+        <div class="content px-4">
+            <h1 class="text-danger">Error.</h1>
+            <h2 class="text-danger">An error occurred while processing your request.</h2>
+
+            @if (Model.ShowRequestId)
+            {
+                <p>
+                    <strong>Request ID:</strong> <code>@Model.RequestId</code>
+                </p>
+            }
+
+            <h3>Development Mode</h3>
+            <p>
+                Swapping to the <strong>Development</strong> environment displays detailed information about the error that occurred.
+            </p>
+            <p>
+                <strong>The Development environment shouldn't be enabled for deployed applications.</strong>
+                It can result in displaying sensitive information from exceptions to end users.
+                For local debugging, enable the <strong>Development</strong> environment by setting the <strong>ASPNETCORE_ENVIRONMENT</strong> environment variable to <strong>Development</strong>
+                and restarting the app.
+            </p>
+        </div>
+    </div>
+</body>
+
+</html>
+-e 
+--- End of ./Pages/Error.cshtml ---
+
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.Logging;
+
+namespace CentralServer.Pages
+{
+    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+    [IgnoreAntiforgeryToken]
+    public class ErrorModel : PageModel
+    {
+        public string RequestId { get; set; }
+
+        public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
+
+        private readonly ILogger<ErrorModel> _logger;
+
+        public ErrorModel(ILogger<ErrorModel> logger)
+        {
+            _logger = logger;
+        }
+
+        public void OnGet()
+        {
+            RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier;
+        }
+    }
+}
+-e 
+--- End of ./Pages/Error.cshtml.cs ---
+
+﻿@page "/events"
+@using CentralServer.Data
+@using Services
+@inject DataService DataService
+<h3>System Events</h3>
+
+<EventForm OnCreate="AddEvent" />
+
+<div style="max-height: 300px; overflow-y: auto;">
+    <EventFeed Events="@eventEntries" />
+</div>
+
+@code {
+    private List<EventEntry> eventEntries = new();
+
+    protected override void OnInitialized()
+    {
+        eventEntries = DataService.GetEventMessages();
+        DataService.EventMessageOnChange += StateHasChanged;
+        
+        
+    }
+
+    private void AddEvent(EventEntry evt)
+    {
+        DataService.AddEventMessage(evt);
+        StateHasChanged();
+    }
+}
+-e 
+--- End of ./Pages/Events.razor ---
+
+﻿@page "/"
+@using CentralServer.Data
+
+<h2>CentralServer Overview</h2>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-header">Total Logs Today</div>
+            <div class="card-body">
+                <h5 class="card-title">@logsToday</h5>
+                <p class="card-text">Messages routed through CentralServer in the last 24 hours.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-header">Active Departments</div>
+            <div class="card-body">
+                <h5 class="card-title">@activeDepartments</h5>
+                <p class="card-text">Currently registered and online departments.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card text-white bg-danger mb-3">
+            <div class="card-header">Critical Events This Week</div>
+            <div class="card-body">
+                <h5 class="card-title">@criticalEvents</h5>
+                <p class="card-text">System-wide alerts marked as critical.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<hr />
+
+<h4>🔗 Quick Navigation</h4>
+<ul>
+    <li><a href="/logging">View Logs</a></li>
+    <li><a href="/registration">Manage Departments</a></li>
+    <li><a href="/events">Review Events</a></li>
+</ul>
+
+@code {
+    private int logsToday = 128; // Placeholder
+    private int activeDepartments = 4; // Placeholder
+    private int criticalEvents = 2; // Placeholder
+
+}
+-e 
+--- End of ./Pages/Index.razor ---
+
+﻿@page "/logging"
+@using CentralServer.Data
+@using Services
+@inject DataService  DataService
+<h3>Logging Dashboard</h3>
+
+<div style="max-height: 400px; overflow-y: auto;">
+    <LogTable Logs="@logEntries" />
+</div>
+
+    @code {
+        private List<LogEntry> logEntries = new();
+
+        protected override Task OnInitializedAsync()
+        {
+            DataService.AddLogMessage(new LogEntry { Timestamp = DateTime.Now, Source = "Finance", Destination = "CentralServer", Type = "SignalR", Status = "Success" });
+            DataService.AddLogMessage(new LogEntry { Timestamp = DateTime.Now.AddMinutes(-5), Source = "HR", Destination = "Finance", Type = "API", Status = "Failed" });
+
+            logEntries = DataService.GetLogMessages();
+            return base.OnInitializedAsync();
+        }
+}
+-e 
+--- End of ./Pages/Logging.razor ---
+
+﻿@page "/registration"
+@using CentralServer.Data
+
+@using Services
+@inject DataService DataService
+
+<h3>Department Registration</h3>
+
+<DepartmentForm OnRegister="HandleRegister" />
+
+<div style="max-height: 400px; overflow-y: auto;">
+    <DepartmentList Departments="@departments" />
+</div>
+
+@code {
+    private List<Department> departments
+    {
+        get
+        {
+            return DataService.GetDepartmentsLog();
+        }
+    }
+
+    private void HandleRegister(Department dept)
+    {
+        DataService.AddDepartmentLog(dept);
+        StateHasChanged();
+    }
+}
+-e 
+--- End of ./Pages/Registration.razor ---
+
+﻿@page "/"
+@namespace CentralServer.Pages
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CentralServer</title>
+    <base href="~/" />
+    <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
+    <link href="css/site.css" rel="stylesheet" />
+    <link href="CentralServer.styles.css" rel="stylesheet" />
+</head>
+<body>
+    <component type="typeof(App)" render-mode="ServerPrerendered" />
+
+    <div id="blazor-error-ui">
+        <environment include="Staging,Production">
+            An error has occurred. This application may no longer respond until reloaded.
+        </environment>
+        <environment include="Development">
+            An unhandled exception has occurred. See browser dev tools for details.
+        </environment>
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+
+    <script src="_framework/blazor.server.js"></script>
+</body>
+</html>
+-e 
+--- End of ./Pages/_Host.cshtml ---
+
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+
+namespace CentralServer
+{
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            CreateHostBuilder(args).Build().Run();
+        }
+
+        public static IHostBuilder CreateHostBuilder(string[] args) =>
+            Host.CreateDefaultBuilder(args)
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder.UseStartup<Startup>();
+                });
+    }
+}
+
+-e 
+--- End of ./Program.cs ---
+
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <WebPublishMethod>FileSystem</WebPublishMethod>
+    <LastUsedBuildConfiguration>Release</LastUsedBuildConfiguration>
+    <LastUsedPlatform>AnyCPU</LastUsedPlatform>
+    <publishUrl>bin/Release/net5.0/publish</publishUrl>
+    <DeleteExistingFiles>false</DeleteExistingFiles>
+    <TargetFramework>net5.0</TargetFramework>
+    <SelfContained>false</SelfContained>
+    <_IsPortable>true</_IsPortable>
+  </PropertyGroup>
+</Project>-e 
+--- End of ./Properties/PublishProfiles/FolderProfile.pubxml ---
+
+{
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:45457",
+      "sslPort": 44392
+    }
+  },
+  "profiles": {
+    "IIS Express": {
+      "commandName": "IISExpress",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "CentralServer": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "applicationUrl": "https://localhost:62690;http://localhost:64102",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}-e 
+--- End of ./Properties/launchSettings.json ---
+
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.Extensions.Caching.Memory;
+using SharedLibrary.Data.Finance;
+using SharedLibrary.Data.HumanResource;
+using SharedLibrary.Data.Logistics;
+
+namespace CentralServer.Services
+{
+    public partial class DataService
+    {
+        /*-----------------Get data for Logistics-----------------------*/
+        private const string CostLogKey = "CostLog";
+        private const string EquipmentLogKey = "EquipmentLog";
+        private const string FuelLogKey = "FuelLog";
+        private const string ShipmentLogKey = "ShipmentLog";
+
+        public List<CostLog> GetCostLog()
+        {
+            return _cache.TryGetValue(CostLogKey, out List<CostLog> log) ? log : new List<CostLog>();
+        }
+        public void AddCostLog()
+        {
+            var log = _cache.GetOrCreate(CostLogKey, entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
+                return new List<CostLog>();
+            });
+
+            log.Add(new CostLog()
+            {
+                Date = DateTime.Now,
+                Description = "Fuel Purchase",
+                Amount = 100,
+                Category = "Fuel"
+            });
+            log.Add(new CostLog()
+            {
+                Date = DateTime.Now,
+                Description = "Truck Repair",
+                Amount = 250,
+                Category = "Maintenance"
+            });
+
+            _cache.Set(CostLogKey, log);
+        }
+        public void AddCostLog(CostLog costLog)
+        {
+            var log = _cache.GetOrCreate(CostLogKey, entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
+                return new List<CostLog>();
+            });
+
+            log.Add(costLog);
+
+            _cache.Set(CostLogKey, log);
+        }
+
+        public List<Equipment> GetEquipmentLog()
+        {
+            return _cache.TryGetValue(EquipmentLogKey, out List<Equipment> log) ? log : new List<Equipment>();
+        }
+        public void AddEquipmentLog()
+        {
+            var log = _cache.GetOrCreate(EquipmentLogKey, entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
+                return new List<Equipment>();
+            });
+
+            log.Add(new Equipment()
+            {
+                Name = "Bus 1",
+                Type = "Bus",
+                Make = "Volvo",
+                Model = "X100",
+                NextServiceDate = DateTime.Now
+            });
+            log.Add(new Equipment()
+            {
+                Name = "Forklift 1",
+                Type = "Forklift",
+                Make = "Caterpillar",
+                Model = "FL200",
+                NextServiceDate = DateTime.Now
+            });
+
+            _cache.Set(EquipmentLogKey, log);
+        }
+        public List<FuelLog> GetFuelLog()
+        {
+            return _cache.TryGetValue(FuelLogKey, out List<FuelLog> log) ? log : new List<FuelLog>();
+        }
+        public void AddFuelLog()
+        {
+            var log = _cache.GetOrCreate(FuelLogKey, entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
+                return new List<FuelLog>();
+            });
+
+            log.Add(new FuelLog()
+            {
+                Date = DateTime.Now,
+                EquipmentId = 1,
+                LitersFilled = 50,
+                Cost = 75,
+                OdometerReading = 10000
+            });
+            log.Add(new FuelLog()
+            {
+                Date = DateTime.Now,
+                EquipmentId = 2,
+                LitersFilled = 60,
+                Cost = 90,
+                OdometerReading = 5000
+            });
+
+            _cache.Set(FuelLogKey, log);
+        }
+        public List<Shipment> GetShipmentLog()
+        {
+            return _cache.TryGetValue(ShipmentLogKey, out List<Shipment> log) ? log : new List<Shipment>();
+        }
+        public void AddShipmentLog()
+        {
+            var log = _cache.GetOrCreate(ShipmentLogKey, entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
+                return new List<Shipment>();
+            });
+
+            log.Add(new Shipment()
+            {
+                ShipmentNumber = "1234",
+                Origin = "Location 1",
+                Destination = "Location 2",
+                ExpectedDeliveryDate = DateTime.Now,
+                CurrentStatus = "Pending"
+            });
+            log.Add(new Shipment()
+            {
+                ShipmentNumber = "5678",
+                Origin = "Location 3",
+                Destination = "Location 4",
+                ExpectedDeliveryDate = DateTime.Now,
+                CurrentStatus = "Pending"
+            });
+
+            _cache.Set(ShipmentLogKey, log);
+        }
+        /*-----------------Get data for Human Resources-----------------------*/
+        private const string PensionerLogKey = "PensionerLog";
+        private const string InternLogKey = "InternLog";
+        private const string EmployeeLogKey = "EmployeeLog";
+        private const string DisciplinaryCaseLogKey = "DisciplinaryCaseLog";
+        private const string DepartmentLogKey = "DepartmentLog";
+
+        public List<Department> GetDepartmentLog()
+        {
+            return _cache.TryGetValue(DepartmentLogKey, out List<Department> log) ? log : new List<Department>();
+        }
+        public void AddDepartmentLog()
+        {
+            var log = _cache.GetOrCreate(DepartmentLogKey, entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
+                return new List<Department>();
+            });
+
+            log.Add(new Department()
+            {
+                Name = "Dummy Department 1",
+                Description = "Description 1"
+            });
+            log.Add(new Department()
+            {
+                Name = "Dummy Department 2",
+                Description = "Description 2"
+            });
+
+            _cache.Set(DepartmentLogKey, log);
+        }
+
+        public List<DisciplinaryCase> GetDisciplinaryCaseLog()
+        {
+            return _cache.TryGetValue(DisciplinaryCaseLogKey, out List<DisciplinaryCase> log) ? log : new List<DisciplinaryCase>();
+        }
+        public void AddDisciplinaryCaseLog()
+        {
+            var log = _cache.GetOrCreate(DisciplinaryCaseLogKey, entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
+                return new List<DisciplinaryCase>();
+            });
+
+            log.Add(new DisciplinaryCase()
+            {
+                EmployeeName = "Dummy Employee 1",
+                Date = DateTime.Now,
+                Reason = "Reason 1"
+            });
+            log.Add(new DisciplinaryCase()
+            {
+                EmployeeName = "Dummy Employee 2",
+                Date = DateTime.Now,
+                Reason = "Reason 2"
+            });
+
+            _cache.Set(DisciplinaryCaseLogKey, log);
+        }
+
+        public List<Employee> GetEmployeeLog()
+        {
+            return _cache.TryGetValue(EmployeeLogKey, out List<Employee> log) ? log : new List<Employee>();
+        }
+        public void AddEmployeeLog()
+        {
+            var log = _cache.GetOrCreate(EmployeeLogKey, entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
+                return new List<Employee>();
+            });
+
+            log.Add(new Employee()
+            {
+                Name = "Dummy Employee 1",
+                Department = "IT",
+                Position = "Developer",
+                Email = "dummy1@email.com"
+            });
+            log.Add(new Employee()
+            {
+                Name = "Dummy Employee 2",
+                Department = "HR",
+                Position = "Manager",
+                Email = "dummy2@email.com"
+            });
+
+            _cache.Set(EmployeeLogKey, log);
+        }
+
+        public List<Intern> GetInternLog()
+        {
+            return _cache.TryGetValue(InternLogKey, out List<Intern> log) ? log : new List<Intern>();
+        }
+        public void AddInternLog()
+        {
+            var log = _cache.GetOrCreate(InternLogKey, entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
+                return new List<Intern>();
+            });
+
+            log.Add(new Intern()
+            {
+                Name = "Dummy Intern 1",
+                Department = "IT",
+                Position = "Developer",
+                Email = "dummy1@email.com"
+            });
+            log.Add(new Intern()
+            {
+                Name = "Dummy Intern 2",
+                Department = "HR",
+                Position = "Manager",
+                Email = "dummy2@email.com"
+            });
+
+            _cache.Set(InternLogKey, log);
+        }
+
+        public List<Pensioner> GetPensionerLog()
+        {
+            return _cache.TryGetValue(PensionerLogKey, out List<Pensioner> log) ? log : new List<Pensioner>();
+        }
+        public void AddPensionerLog()
+        {
+            var log = _cache.GetOrCreate(PensionerLogKey, entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
+                return new List<Pensioner>();
+            });
+
+            log.Add(new Pensioner()
+            {
+                Name = "Dummy Pensioner 1",
+                LastDepartment = "IT",
+                LastPosition = "Developer",
+                Email = "dummy1@email.com"
+            });
+            log.Add(new Pensioner()
+            {
+                Name = "Dummy Pensioner 2",
+                LastDepartment = "HR",
+                LastPosition = "Manager",
+                Email = "dummy2@email.com"
+            });
+
+            _cache.Set(PensionerLogKey, log);
+        }
+        /*-----------------Get data for Finance-----------------------*/
+        private const string AssetLogKey = "AssetLog";
+        private const string BalanceSheetLogKey = "BalanceSheetLog";
+        private const string PnLLogKey = "PnLLog";
+        private const string TaxItemLogKey = "TaxItemLog";
+
+        public List<Asset> GetAssetLog()
+        {
+            return _cache.TryGetValue(AssetLogKey, out List<Asset> log) ? log : new List<Asset>();
+        }
+        public void AddAssetLog()
+        {
+            var log = _cache.GetOrCreate(AssetLogKey, entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
+                return new List<Asset>();
+            });
+
+            log.Add(new Asset { Name = "Central Asset 1", AcquisitionDate = DateTime.Now, Cost = 5000 });
+            log.Add(new Asset { Name = "Central Asset 2", AcquisitionDate = DateTime.Now, Cost = 6000 });
+
+            _cache.Set(AssetLogKey, log);
+        }
+
+        public List<BalanceSheet> GetBalanceSheetLog()
+        {
+            return _cache.TryGetValue(BalanceSheetLogKey, out List<BalanceSheet> log) ? log : new List<BalanceSheet>();
+        }
+        public void AddBalanceSheetLog()
+        {
+            var log = _cache.GetOrCreate(BalanceSheetLogKey, entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
+                return new List<BalanceSheet>();
+            });
+
+            log.Add(new BalanceSheet
+            {
+                Assets = 1.1,
+                Id = 0022,
+                Liabilities = 50,
+            });
+            log.Add(new BalanceSheet
+            {
+                Assets = 2.3,
+                Id = 3022,
+                Liabilities = 50,
+            });
+
+            _cache.Set(BalanceSheetLogKey, log);
+        }
+
+        public List<PnL> GetPnLLog()
+        {
+            return _cache.TryGetValue(PnLLogKey, out List<PnL> log) ? log : new List<PnL>();
+        }
+        public void AddPnLLog()
+        {
+            var log = _cache.GetOrCreate(PnLLogKey, entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
+                return new List<PnL>();
+            });
+
+            log.Add(new PnL
+            {
+                Expenses = 1.1M,
+                Id = 0022,
+                Revenue = 50,
+            });
+            log.Add(new PnL
+            {
+                Expenses = 2.3M,
+                Id = 3022,
+                Revenue = 500,
+            });
+
+            _cache.Set(PnLLogKey, log);
+        }
+
+
+        public List<TaxItem> GetTaxItmeLog()
+        {
+            return _cache.TryGetValue(TaxItemLogKey, out List<TaxItem> log) ? log : new List<TaxItem>();
+        }
+        public void AddTaxItmeLog()
+        {
+            var log = _cache.GetOrCreate(TaxItemLogKey, entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
+                return new List<TaxItem>();
+            });
+
+            log.Add(new TaxItem
+            {
+                Name = "G Wagon",
+                Id = 232,
+                IsExempt = false,
+                ProjectedTax = 345,
+                TaxReturn = 0.5M,
+                DueDate = DateTime.Today,
+            });
+            log.Add(new TaxItem
+            {
+                Name = "Rental Property",
+                Id = 1932,
+                IsExempt = true,
+                ProjectedTax = 3465,
+                TaxReturn = 5M,
+                DueDate = DateTime.Today,
+            });
+
+            _cache.Set(TaxItemLogKey, log);
+        }
+    }
+}
+-e 
+--- End of ./Services/DataGetDepartmentService.cs ---
+
+﻿using System.Collections.Generic;
+using SharedLibrary.Data;
+using Microsoft.Extensions.Logging;
+using CentralServer.Data;
+using System;
+using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Caching.Memory;
+
+namespace CentralServer.Services
+{
+    public partial class DataService
+    {
+        private readonly IMemoryCache _cache;
+        private readonly ILogger<DataService> _logger;
+        public event Action EventMessageOnChange;
+        private readonly Dispatcher _dispatcher;
+        private const string EventKey = "EventLog";
+        private const string DepartmentKey = "DepartmentLog";
+        private const string LogKey = "LogLog";
+        
+        public DataService(ILogger<DataService> logger, Dispatcher dispatcher, IMemoryCache cache)
+        {
+            _logger = logger;
+            _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
+            _cache = cache;
+        }
+
+        public List<LogEntry> GetLogMessages()
+        {
+            return _cache.TryGetValue(LogKey, out List<LogEntry> log) ? log : new List<LogEntry>();
+        }
+        public List<Department> GetDepartmentsLog()
+        {
+            return _cache.TryGetValue(DepartmentKey, out List<Department> log) ? log : new List<Department>();
+            //return _eventMessages;
+        }
+        public List<EventEntry> GetEventMessages()
+        {
+            return _cache.TryGetValue(EventKey, out List<EventEntry> log) ? log : new List<EventEntry>();
+            //return _eventMessages;
+        }
+        public void AddDepartmentLog(Department newDepartment)
+        {
+            var log = _cache.GetOrCreate(DepartmentKey, entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
+                return new List<Department>();
+            });
+
+            log.Add(newDepartment);
+
+            _cache.Set(DepartmentKey, log);
+        }
+
+        private void AddDepartmentLog(string departmentName, string departmentEmail, string department)
+        {
+            var log = _cache.GetOrCreate(EventKey, entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
+                return new List<Department>();
+            });
+
+            log.Add(new Department()
+            {
+                Name = departmentName,
+                Email = $"{departmentEmail}@NACS.org",
+                Status = "Not",
+                DepartmentStatus = DepartmentStatus.NonActive,
+            });
+
+            _cache.Set(EventKey, log);
+        }
+        public void AddLogMessage(string source, string destination, string status, string logType)
+        {
+            var log = _cache.GetOrCreate(EventKey, entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
+                return new List<LogEntry>();
+            });
+
+            log.Add(new LogEntry()
+            {
+                Source = source,
+                Destination = destination,
+                Status = status,
+                Timestamp = DateTime.Now,
+                Type = logType
+            });
+
+            _cache.Set(LogKey, log);
+            _logger.LogInformation($"Added log message: ");
+        }
+        public void AddLogMessage(LogEntry logEntry)
+        {
+            //_logMessages.Add(message);
+            var log = _cache.GetOrCreate(EventKey, entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
+                return new List<LogEntry>();
+            });
+
+            log.Add(logEntry);
+
+            _cache.Set(LogKey, log);
+            _logger.LogInformation($"Added log message: {logEntry.ToString()}");
+        }
+
+        private void LogEvent(string method, string message, string department)
+        {
+            var log = _cache.GetOrCreate(EventKey, entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
+                return new List<EventEntry>();
+            });
+
+            log.Add(new EventEntry()
+            {
+                Title = method,
+                Description = message,
+                Timestamp = System.DateTime.Now,
+                TargetDepartments = department,
+                Severity = "Request"
+            });
+
+            _cache.Set(EventKey, log);
+        }
+
+        private void LogEvent(EventEntry newEvent)
+        {
+            var log = _cache.GetOrCreate(EventKey, entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
+                return new List<EventEntry>();
+            });
+
+            log.Add(newEvent);
+
+            _cache.Set(EventKey, log);
+        }
+
+        public void AddEventMessage(string title,string message,string department)
+        {
+            LogEvent(title,message,department);
+            _logger.LogInformation($"Added event message: {message}");
+            _dispatcher.InvokeAsync(() =>
+            {
+                EventMessageOnChange?.Invoke();
+            });
+            //EventMessageOnChange?.Invoke();
+        }
+
+        public void AddEventMessage(EventEntry newEvent)
+        {
+            LogEvent(newEvent);
+            _logger.LogInformation($"Added event message: {newEvent.Description}");
+            EventMessageOnChange?.Invoke();
+        }
+    }
+}
+
+-e 
+--- End of ./Services/DataService.cs ---
+
+﻿@inherits LayoutComponentBase
+
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+
+    <div class="main">
+        <div class="top-row px-4">
+            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
+        </div>
+
+        <div class="content px-4">
+            @Body
+        </div>
+    </div>
+</div>
+-e 
+--- End of ./Shared/MainLayout.razor ---
+
+﻿<div class="top-row pl-4 navbar navbar-dark">
+    <a class="navbar-brand" href="">CentralServer</a>
+    <button class="navbar-toggler" @onclick="ToggleNavMenu">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+</div>
+
+<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
+    <ul class="nav flex-column">
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="oi oi-home" aria-hidden="true"></span> Home
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="logging">
+                <span class="oi oi-plus" aria-hidden="true"></span> Logging
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="registration">
+                <span class="oi oi-list-rich" aria-hidden="true"></span> Registration
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="events">
+                <span class="oi oi-list-rich" aria-hidden="true"></span> Events
+            </NavLink>
+        </li>
+    </ul>
+</div>
+
+@code {
+    private bool collapseNavMenu = true;
+
+    private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+}
+-e 
+--- End of ./Shared/NavMenu.razor ---
+
+﻿<div class="alert alert-secondary mt-4" role="alert">
+    <span class="oi oi-pencil mr-2" aria-hidden="true"></span>
+    <strong>@Title</strong>
+
+    <span class="text-nowrap">
+        Please take our
+        <a target="_blank" class="font-weight-bold" href="https://go.microsoft.com/fwlink/?linkid=2137813">brief survey</a>
+    </span>
+    and tell us what you think.
+</div>
+
+@code {
+    [Parameter]
+    public string Title { get; set; }
+}
+-e 
+--- End of ./Shared/SurveyPrompt.razor ---
+
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using CentralServer.Data;
+using CentralServer.Hubs;
+
+namespace CentralServer
+{
+    public class Startup
+    {
+        public Startup(IConfiguration configuration)
+        {
+            Configuration = configuration;
+        }
+
+        public IConfiguration Configuration { get; }
+
+        // This method gets called by the runtime. Use this method to add services to the container.
+        // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
+        public void ConfigureServices(IServiceCollection services)
+        {
+            services.AddSignalR();
+            services.AddSingleton<Services.DataService>();
+            services.AddRazorPages();
+            services.AddServerSideBlazor();
+            services.AddMemoryCache();
+            services.AddSingleton<Dispatcher>(sp => Dispatcher.CreateDefault());
+        }
+
+        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        {
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+            else
+            {
+                app.UseExceptionHandler("/Error");
+                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+                app.UseHsts();
+            }
+
+            app.UseHttpsRedirection();
+            app.UseStaticFiles();
+
+            app.UseRouting();
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapBlazorHub();
+                endpoints.MapControllers();
+                endpoints.MapHub<CommunicationHub>("/communicationHub");
+                endpoints.MapFallbackToPage("/_Host");
+            });
+        }
+    }
+}
+-e 
+--- End of ./Startup.cs ---
+
+﻿@using System.Net.Http
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Routing
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components.Web.Virtualization
+@using Microsoft.JSInterop
+@using CentralServer
+@using CentralServer.Shared
+@using CentralServer.Components
+-e 
+--- End of ./_Imports.razor ---
+
+﻿{
+  "DetailedErrors": true,
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft": "Warning",
+      "Microsoft.Hosting.Lifetime": "Information"
+    }
+  }
+}
+-e 
+--- End of ./appsettings.Development.json ---
+
+﻿{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft": "Warning",
+      "Microsoft.Hosting.Lifetime": "Information"
+    }
+  },
+  "AllowedHosts": "*",
+  "NetworkConfig": {
+    "IPAddress": "127.0.1.1",
+    "ChatIPAddress": "127.0.1.5",
+    "Port": 5000
+  },
+  "CentralServerBaseUrl": "https://localhost:62690",
+  "DepartmentName": "CentralServer",
+  "AllowedDepartments": [ "Finance", "HumanResources", "Logistics", "CyberSecurity" ]
+}
+-e 
+--- End of ./appsettings.json ---
+

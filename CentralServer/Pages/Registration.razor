@@ -1,6 +1,9 @@
 ﻿@page "/registration"
 @using CentralServer.Data
 
+@using Services
+@inject DataService DataService
+
 <h3>Department Registration</h3>
 
 <DepartmentForm OnRegister="HandleRegister" />
@@ -9,11 +12,18 @@
     <DepartmentList Departments="@departments" />
 </div>
 
-    @code {
-        private List<Department> departments = new();
-
-        private void HandleRegister(Department dept)
+@code {
+    private List<Department> departments
+    {
+        get
         {
-            departments.Add(dept);
+            return DataService.GetDepartmentsLog();
         }
     }
+
+    private void HandleRegister(Department dept)
+    {
+        DataService.AddDepartmentLog(dept);
+        StateHasChanged();
+    }
+}

@@ -24,5 +24,6 @@
     private void AddEvent(EventEntry evt)
     {
         DataService.AddEventMessage(evt);
+        StateHasChanged();
     }
 }
