@@ -22,16 +22,22 @@ namespace Logistics
         }
 
         public IConfiguration Configuration { get; }
+        private CommunicationService GetCommunicationService
+        {
+            get;
+            set;
+        }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            string departmentName = Configuration["DepartmentName"];
+            //string departmentName = Configuration["DepartmentName"];
             services.AddRazorPages();
             services.AddScoped<HttpClient>();
             services.AddServerSideBlazor();
-            services.AddSingleton(new CommunicationService(departmentName));
+            GetCommunicationService = new CommunicationService(Configuration);
+            services.AddSingleton(GetCommunicationService);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -59,6 +65,7 @@ namespace Logistics
                 endpoints.MapControllers();
                 endpoints.MapFallbackToPage("/_Host");
             });
+            //await GetCommunicationService.StartConnection();
         }
     }
 }

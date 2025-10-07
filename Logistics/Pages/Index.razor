@@ -68,6 +68,8 @@
         equipmentDueForService = await GetEquipmentDueForServiceCount();
         totalCostsLastMonth = await GetTotalCostsLastMonth();
         averageFuelConsumption = await GetAverageFuelConsumptionThisWeek();
+        //await commservices.StartConnection();
+
     }
 
     private async Task<int> GetShipmentsInTransitCount()

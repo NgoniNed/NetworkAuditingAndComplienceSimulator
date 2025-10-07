@@ -19,6 +19,7 @@
     <None Remove="Interfaces\Finance\" />
     <None Remove="Interfaces\HumanResource\" />
     <None Remove="Interfaces\Logistics\" />
+    <None Remove="Microsoft.Extensions.Configuration" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Services\" />
@@ -34,5 +35,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="5.0.17" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0" />
   </ItemGroup>
 </Project>
