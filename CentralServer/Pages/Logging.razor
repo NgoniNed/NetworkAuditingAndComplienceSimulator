@@ -13,8 +13,12 @@
 
         protected override Task OnInitializedAsync()
         {
-            DataService.AddLogMessage(new LogEntry { Timestamp = DateTime.Now, Source = "Finance", Destination = "CentralServer", Type = "SignalR", Status = "Success" });
-            DataService.AddLogMessage(new LogEntry { Timestamp = DateTime.Now.AddMinutes(-5), Source = "HR", Destination = "Finance", Type = "API", Status = "Failed" });
+            if(DataService.GetLogMessages().Count == 0)
+            {
+                DataService.AddLogMessage(new LogEntry { Timestamp = DateTime.Now, Source = "Finance", Destination = "CentralServer", Type = "SignalR", Status = "Success" });
+                DataService.AddLogMessage(new LogEntry { Timestamp = DateTime.Now.AddMinutes(-5), Source = "HR", Destination = "Finance", Type = "API", Status = "Failed" });
+
+            }
 
             logEntries = DataService.GetLogMessages();
             return base.OnInitializedAsync();

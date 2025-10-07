@@ -11,12 +11,17 @@
     <None Remove="Services\" />
     <None Remove="StackExchange.Redis" />
     <None Remove="RabbitMQ.Client" />
+    <None Remove="Microsoft.EntityFrameworkCore.Tools" />
+    <None Remove="Database\" />
+    <None Remove="Microsoft.EntityFrameworkCore" />
+    <None Remove="Microsoft.EntityFrameworkCore.Sqlite" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Hubs\" />
     <Folder Include="Components\" />
     <Folder Include="Controllers\" />
     <Folder Include="Services\" />
+    <Folder Include="Database\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\BaseLibrary\BaseLibrary.csproj">
@@ -25,5 +30,13 @@
     <ProjectReference Include="..\SharedLibrary\SharedLibrary.csproj">
       <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.17">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.17" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.17" />
   </ItemGroup>
 </Project>

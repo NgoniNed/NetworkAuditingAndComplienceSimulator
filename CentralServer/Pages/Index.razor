@@ -1,6 +1,7 @@
 ﻿@page "/"
-@using CentralServer.Data
+@using CentralServer.Services
 
+@inject DataService _dataServices
 <h2>CentralServer Overview</h2>
 
 <div class="row">
@@ -45,8 +46,15 @@
 </ul>
 
 @code {
-    private int logsToday = 128; // Placeholder
-    private int activeDepartments = 4; // Placeholder
-    private int criticalEvents = 2; // Placeholder
+    private int logsToday = 0; 
+    private int activeDepartments = 0; 
+    private int criticalEvents = 0; 
 
+    protected override Task OnInitializedAsync()
+    {
+        activeDepartments = _dataServices.GetDepartmentsLog().Count;
+        logsToday = _dataServices.GetLogMessages().Count;
+        criticalEvents = _dataServices.GetEventMessages().Count;
+        return base.OnInitializedAsync();
+    }
 }

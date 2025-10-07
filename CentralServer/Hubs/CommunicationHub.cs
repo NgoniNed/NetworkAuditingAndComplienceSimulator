@@ -2,16 +2,19 @@
 using System.Threading.Tasks;
 using CentralServer.Data;
 using Microsoft.Extensions.Configuration;
+using CentralServer.Services;
 
 namespace CentralServer.Hubs
 {
     public class CommunicationHub : Hub
     {
         private readonly IConfiguration _configuration;
+        private readonly DataService _dataService;
 
-        public CommunicationHub(IConfiguration configuration)
+        public CommunicationHub(IConfiguration configuration, DataService dataService)
         {
             _configuration = configuration;
+            _dataService = dataService;
         }
 
         public async Task SendMessage(Message message)
@@ -52,5 +55,17 @@ namespace CentralServer.Hubs
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, departmentName);
         }
+
+        public async Task RegisterDepartment(BaseLibrary.DataModels.Department department)
+        {
+            System.Console.WriteLine($"Central Server SignalR Hub Connected with {department.Name}");
+            department.Status = "Active";
+            department.DepartmentStatus = BaseLibrary.DataModels.DepartmentStatus.Active;
+            _dataService.AddDepartmentLog(department);
+            _dataService.AddEventMessage("Startup", $"{department.Name} is now online at {department.URL}:{department.Port}", department.Name);
+            _dataService.AddLogMessage($"{department.Name} @ {department.URL}:{department.Port}", $"Central Server Communication Hub", department.DepartmentStatus.ToString(),"SignalR Hub");
+            await Groups.AddToGroupAsync(Context.ConnectionId, department.Name);
+        }
+
     }
 }

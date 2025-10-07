@@ -28,5 +28,6 @@ namespace CentralServer.Data
             get;
             set;
         } = DateTime.UtcNow;
+        public object NACS_ID { get; internal set; }
     }
 }

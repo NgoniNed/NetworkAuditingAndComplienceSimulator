@@ -13,7 +13,7 @@
 </div>
 
 @code {
-    private List<Department> departments
+    private List<BaseLibrary.DataModels.Department> departments
     {
         get
         {
@@ -21,7 +21,7 @@
         }
     }
 
-    private void HandleRegister(Department dept)
+    private void HandleRegister(BaseLibrary.DataModels.Department dept)
     {
         DataService.AddDepartmentLog(dept);
         StateHasChanged();
