@@ -9,7 +9,7 @@ namespace CentralServer.Data
         public string Destination { get; set; }
         public string Type { get; set; }
         public string Status { get; set; }
-        public object NACS_ID { get; internal set; }
+        public int NACS_ID { get; internal set; }
     }
 
 }

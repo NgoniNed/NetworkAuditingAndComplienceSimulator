@@ -20,7 +20,7 @@
             get;
             set;
         }
-        public object NACS_ID { get; set; }
+        public int NACS_ID { get; set; }
     }
     public enum DepartmentStatus
     {

@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using CentralServer.Data;
 using CentralServer.Hubs;
+using Microsoft.EntityFrameworkCore;
 
 namespace CentralServer
 {
@@ -28,10 +29,16 @@ namespace CentralServer
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSignalR();
-            services.AddSingleton<Services.DataService>();
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddMemoryCache();
+            services.AddControllers();
+            services.AddDbContextFactory<Database.NACSDbContext>(options =>
+            {
+                var dbPath = Configuration["CentralServerDB"] ?? "NACS_database.db";
+                options.UseSqlite($"Data Source={dbPath}");
+            });
+            services.AddSingleton<Services.DataService>();
             services.AddSingleton<Dispatcher>(sp => Dispatcher.CreateDefault());
         }
 
@@ -50,8 +57,10 @@ namespace CentralServer
             }
             using (var scope = app.ApplicationServices.CreateScope())
             {
-                var db = Database.DbContextFactory.CreateDbContext();
-                db.MigrateDatabase();
+                var factory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<Database.NACSDbContext>>();
+                using var db = factory.CreateDbContext();
+                db.Database.EnsureCreated();
+                db.Database.Migrate();
             }
 
             app.UseHttpsRedirection();
